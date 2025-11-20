@@ -90,7 +90,7 @@ See `.env.example` for the complete list:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-NEXT_PUBLIC_APP_URL=your_production_url
+NEXT_PUBLIC_APP_URL=https://talk-to-my-lawyer.com
 GEMINI_API_KEY=your_google_gemini_api_key
 \`\`\`
 

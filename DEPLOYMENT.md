@@ -54,6 +54,9 @@ WHERE email = 'your-admin-email@example.com';
 3. Add environment variables in Vercel project settings:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_APP_URL=https://talk-to-my-lawyer.com`
+   - `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000`
+   - `GEMINI_API_KEY`
 4. Deploy
 
 ## Step 6: Configure Supabase Auth
@@ -61,10 +64,10 @@ WHERE email = 'your-admin-email@example.com';
 In your Supabase project:
 
 1. Go to Authentication > URL Configuration
-2. Add your production URL to Site URL
+2. Add `https://talk-to-my-lawyer.com` to Site URL
 3. Add redirect URLs:
-   - `https://yourdomain.com/auth/callback`
-   - `https://yourdomain.com/dashboard`
+   - `https://talk-to-my-lawyer.com/auth/callback`
+   - `https://talk-to-my-lawyer.com/dashboard`
 
 ## Testing Roles
 
