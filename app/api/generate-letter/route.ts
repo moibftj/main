@@ -52,7 +52,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { letterType, intakeData } = body
 
-    if (!process.env.GEMINI_API_KEY) {
+    const geminiApiKey = process.env.GEMINI_API_KEY
+    const geminiModel = process.env.GEMINI_MODEL_ID || "gemini-2.0-pro-exp-02-05"
+
+    if (!geminiApiKey) {
       console.error("[v0] Missing GEMINI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
@@ -79,21 +82,22 @@ Write a professional, legally sound letter that:
 
 Return only the letter content, no additional commentary.`
 
-    const aiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
-        process.env.GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      },
+    const geminiUrl = new URL(
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
     )
+    geminiUrl.searchParams.set("key", geminiApiKey)
+
+    const aiResponse = await fetch(geminiUrl.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    })
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text()

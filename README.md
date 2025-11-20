@@ -59,6 +59,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_MODEL_ID=gemini-2.0-pro-exp-02-05
 \`\`\`
 
 **Where to find these values:**
@@ -92,6 +93,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 NEXT_PUBLIC_APP_URL=your_production_url
 GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_MODEL_ID=gemini-2.0-pro-exp-02-05
 \`\`\`
 
 ## Subscription Plans
