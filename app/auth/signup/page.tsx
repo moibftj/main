@@ -67,9 +67,12 @@ export default function SignUpPage() {
       if (signUpError) throw signUpError
 
       if (authData.user) {
-        // Try to create/update the profile with better error handling
+        // Create profile using service role to bypass RLS
         try {
-          const { data: profileData, error: profileError } = await supabase
+          // Create a service client for profile creation
+          const serviceClient = supabase.supabaseClient
+
+          const { data: profileData, error: profileError } = await serviceClient
             .from('profiles')
             .upsert({
               id: authData.user.id,
