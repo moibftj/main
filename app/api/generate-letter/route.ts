@@ -56,42 +56,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "letterType and intakeData are required" }, { status: 400 })
     }
 
-    if (!process.env.ZAI_API_KEY) {
-      console.error("[v0] Missing ZAI_API_KEY")
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("[v0] Missing GEMINI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    // 4. Call Z.AI directly (Node runtime) for a first draft
+    // 4. Call Google Gemini API directly (Node runtime) for a first draft
     const prompt = buildPrompt(letterType, intakeData)
 
-    const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.ZAI_API_KEY}`,
         "Content-Type": "application/json",
-        "Accept-Language": "en-US,en",
       },
       body: JSON.stringify({
-        model: "glm-4.6",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
       })
     })
 
     if (!response.ok) {
-      console.error("[v0] Z.AI API error:", response.status, response.statusText)
+      console.error("[v0] Gemini API error:", response.status, response.statusText)
       return NextResponse.json({ error: "AI service unavailable" }, { status: 500 })
     }
 
     const aiResult = await response.json()
-    const generatedContent = aiResult.choices?.[0]?.message?.content || ""
+    const generatedContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || ""
 
     if (!generatedContent) {
-      console.error("[v0] Z.AI returned empty content", aiResult)
+      console.error("[v0] Gemini returned empty content", aiResult)
       return NextResponse.json({ error: "AI returned empty content" }, { status: 500 })
     }
 
