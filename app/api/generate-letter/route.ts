@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
 import { type NextRequest, NextResponse } from "next/server"
 
 export const runtime = "nodejs"
@@ -57,20 +56,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "letterType and intakeData are required" }, { status: 400 })
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      console.error("[v0] Missing GEMINI_API_KEY")
+    if (!process.env.ZAI_API_KEY) {
+      console.error("[v0] Missing ZAI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    // 4. Call Gemini directly (Node runtime) for a first draft
+    // 4. Call Z.AI directly (Node runtime) for a first draft
     const prompt = buildPrompt(letterType, intakeData)
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-    const aiResult = await model.generateContent(prompt)
-    const generatedContent = aiResult.response?.text?.() || ""
+
+    const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.ZAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "Accept-Language": "en-US,en",
+      },
+      body: JSON.stringify({
+        model: "glm-4.6",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
+    })
+
+    if (!response.ok) {
+      console.error("[v0] Z.AI API error:", response.status, response.statusText)
+      return NextResponse.json({ error: "AI service unavailable" }, { status: 500 })
+    }
+
+    const aiResult = await response.json()
+    const generatedContent = aiResult.choices?.[0]?.message?.content || ""
 
     if (!generatedContent) {
-      console.error("[v0] Gemini returned empty content", aiResult)
+      console.error("[v0] Z.AI returned empty content", aiResult)
       return NextResponse.json({ error: "AI returned empty content" }, { status: 500 })
     }
 
