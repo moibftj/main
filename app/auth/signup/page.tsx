@@ -67,30 +67,29 @@ export default function SignUpPage() {
       if (signUpError) throw signUpError
 
       if (authData.user) {
-        // Create profile using service role to bypass RLS
+        // Create profile using server API with service role
         try {
-          // Create a service client for profile creation
-          const serviceClient = supabase.supabaseClient
-
-          const { data: profileData, error: profileError } = await serviceClient
-            .from('profiles')
-            .upsert({
-              id: authData.user.id,
+          const response = await fetch('/api/create-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: authData.user.id,
               email: authData.user.email || email,
               role: role,
-              full_name: fullName
-            }, {
-              onConflict: 'id'
+              fullName: fullName
             })
-            .select()
-            .single()
+          })
 
-          if (profileError) {
-            console.error('Profile creation error:', profileError)
+          const result = await response.json()
+
+          if (!response.ok) {
+            console.error('Profile creation error:', result.error)
             // Don't throw error immediately - try to continue
             console.warn('Profile creation failed, but continuing with signup process')
           } else {
-            console.log('Profile created successfully:', profileData)
+            console.log('Profile created successfully:', result.profile)
           }
         } catch (err) {
           console.error('Unexpected error during profile creation:', err)
