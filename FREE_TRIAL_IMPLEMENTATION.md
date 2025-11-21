@@ -33,13 +33,15 @@ Replaced with professional attorney-focused language:
 
 ## User Flow
 
+
 ### First Time User (Free Trial)
 1. Sign up → Create account
 2. Go to "New Letter" → Fill form
-3. Click "Generate Legal Letter" → Draft created instantly
-4. **Pricing overlay appears** with blurred content
-5. Can preview draft but cannot submit for review
-6. Must subscribe to proceed
+3. Click "Generate Legal Letter" → Draft is generated and sent for admin review
+4. **Pricing overlay appears** (content remains blurred, draft is NOT shown)
+5. Cannot preview draft; must subscribe to proceed
+6. Admin reviews, edits, and approves the letter
+7. After admin approval, letter appears in subscriber's "My Letters" area
 
 ### Subscribed User
 1. Fill letter form
@@ -82,15 +84,18 @@ setShowPricingOverlay(isFree)
 
 ## What Users See
 
+
 ### Before Subscription:
 - ✅ Can generate ONE draft for free
 - ✅ See pricing overlay with blurred content
+- ❌ Cannot view draft (must go through admin review)
 - ❌ Cannot submit for attorney review
 - ❌ Cannot generate additional letters
 
+
 ### After Subscription:
 - ✅ Generate letters based on plan limits
-- ✅ Submit for attorney review
+- ✅ View draft after admin review
 - ✅ Download approved letters as PDF
 - ✅ Email letters directly
 

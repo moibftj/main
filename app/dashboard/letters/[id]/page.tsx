@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { LetterActions } from '@/components/letter-actions'
+import { ReviewStatusModal } from '@/components/review-status-modal'
 
 export default async function LetterDetailPage({ params }: { params: { id: string } }) {
   const { profile } = await getUser()
@@ -68,8 +69,11 @@ export default async function LetterDetailPage({ params }: { params: { id: strin
     }
   ]
 
+  const showReviewModal = ['pending_review', 'under_review'].includes(letter.status)
+
   return (
     <DashboardLayout>
+      <ReviewStatusModal show={showReviewModal} status={letter.status} />
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <Link href="/dashboard/letters" className="text-primary hover:text-primary/80 text-sm flex items-center gap-1 mb-4">
@@ -166,6 +170,28 @@ export default async function LetterDetailPage({ params }: { params: { id: strin
                   <h3 className="font-semibold text-destructive">Rejected</h3>
                   <p className="text-sm text-destructive/80 mt-1">{letter.rejection_reason}</p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow-sm border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Attorney Draft</h2>
+              <span className="text-xs text-muted-foreground">Saved automatically after generation</span>
+            </div>
+            <div className="bg-muted/50 border rounded-lg p-4">
+              <pre className="whitespace-pre-wrap text-sm leading-relaxed">{letter.ai_draft_content || 'No draft available yet.'}</pre>
+            </div>
+          </div>
+
+          {letter.final_content && letter.status === 'approved' && (
+            <div className="bg-white rounded-lg shadow-sm border p-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Final Letter</h2>
+                <span className="text-xs text-primary font-medium">Approved</span>
+              </div>
+              <div className="bg-muted/40 border rounded-lg p-4">
+                <pre className="whitespace-pre-wrap text-sm leading-relaxed">{letter.final_content}</pre>
               </div>
             </div>
           )}

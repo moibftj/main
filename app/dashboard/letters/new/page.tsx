@@ -23,6 +23,10 @@ export default function NewLetterPage() {
   const [loading, setLoading] = useState(false)
   const [selectedType, setSelectedType] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [aiDraft, setAiDraft] = useState("")
+  const [letterId, setLetterId] = useState<string | null>(null)
+  const [isFreeTrial, setIsFreeTrial] = useState(false)
+  const [showPricingOverlay, setShowPricingOverlay] = useState(false)
   const [formData, setFormData] = useState({
     senderName: "",
     senderAddress: "",
@@ -55,15 +59,14 @@ export default function NewLetterPage() {
           router.push("/dashboard/subscription")
           return
         }
-        if (errorData.needsSubscription) {
-          router.push("/dashboard/subscription")
-          return
-        }
         throw new Error(errorData.error || "Failed to generate letter")
       }
 
-      const { letterId } = await response.json()
-      router.push(`/dashboard/letters/${letterId}?submitted=1`)
+      const { letterId: newLetterId, aiDraft: draft, isFreeTrial: freeTrialFlag } = await response.json()
+      setLetterId(newLetterId)
+      setAiDraft(draft || "")
+      setIsFreeTrial(!!freeTrialFlag)
+      setShowPricingOverlay(!!freeTrialFlag)
     } catch (err: any) {
       console.error("[v0] Letter creation error:", err)
       setError(err.message || "Failed to create letter")
@@ -202,7 +205,7 @@ export default function NewLetterPage() {
 
             <div className="mt-6 flex gap-4">
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Submitting..." : "Generate & Submit for Review"}
+                {loading ? "Generating..." : "Generate Attorney Draft"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.push("/dashboard/letters")}>
                 Cancel
@@ -210,6 +213,107 @@ export default function NewLetterPage() {
             </div>
           </div>
         </form>
+      )}
+
+      {aiDraft && (
+        <div className="mt-10 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm text-muted-foreground uppercase tracking-tight">Draft Ready</p>
+              <h2 className="text-2xl font-semibold text-foreground">Attorney-generated draft</h2>
+              <p className="text-sm text-muted-foreground">
+                Review the draft below. You can submit for attorney review after subscribing.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {letterId && (
+                <Button variant="outline" onClick={() => router.push(`/dashboard/letters/${letterId}`)}>
+                  Open Letter Page
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => router.push("/dashboard/subscription")}>
+                Manage Subscription
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className={`bg-card border rounded-lg p-4 whitespace-pre-wrap leading-relaxed ${showPricingOverlay ? "blur-sm pointer-events-none select-none" : ""}`}>
+              {aiDraft}
+            </div>
+
+            {showPricingOverlay && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-white border shadow-xl rounded-lg p-6 max-w-xl w-full space-y-4">
+                  <h3 className="text-xl font-semibold">Unlock attorney review</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your first draft is free to preview. Subscribe to submit this letter for attorney review and delivery.
+                  </p>
+                  <div className="grid gap-3">
+                    <div className="border rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">Single Letter</div>
+                        <div className="text-sm text-muted-foreground">One-time review</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$299</div>
+                        <Button size="sm" className="mt-2" onClick={() => router.push("/dashboard/subscription")}>
+                          Choose
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-lg p-3 flex items-center justify-between bg-primary/5">
+                      <div>
+                        <div className="font-semibold">Monthly</div>
+                        <div className="text-sm text-muted-foreground">4 letters per month</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$299/mo</div>
+                        <Button size="sm" className="mt-2" onClick={() => router.push("/dashboard/subscription")}>
+                          Choose
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">Yearly</div>
+                        <div className="text-sm text-muted-foreground">8 letters per year</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">$599/yr</div>
+                        <Button size="sm" className="mt-2" onClick={() => router.push("/dashboard/subscription")}>
+                          Choose
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Button variant="secondary" onClick={() => setShowPricingOverlay(false)}>
+                      Preview letter draft
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Subscription required to submit for attorney review
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {!isFreeTrial && (
+            <div className="flex items-center justify-between bg-muted/50 border rounded-lg p-4">
+              <div>
+                <p className="font-medium text-foreground">Ready to submit?</p>
+                <p className="text-sm text-muted-foreground">Send this draft to our attorneys for review and approval.</p>
+              </div>
+              {letterId && (
+                <Button onClick={() => router.push(`/dashboard/letters/${letterId}`)}>
+                  Submit for Attorney Review
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

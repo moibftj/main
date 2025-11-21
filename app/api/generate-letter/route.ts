@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const isFreeTrial = (count || 0) === 0
 
-    // If not free trial, check subscription credits
+    // If not free trial, ensure active subscription has credits available before generating
     if (!isFreeTrial) {
       const { data: subscription } = await supabase
         .from("subscriptions")
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         title: `${letterType} - ${new Date().toLocaleDateString()}`,
         intake_data: intakeData,
         ai_draft_content: generatedContent,
-        status: "pending_review",
+        status: "draft",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -95,30 +95,13 @@ export async function POST(request: NextRequest) {
       throw insertError
     }
 
-    if (!isFreeTrial) {
-      const { data: canDeduct, error: deductError } = await supabase.rpc("deduct_letter_allowance", {
-        u_id: user.id,
-      })
-
-      if (deductError || !canDeduct) {
-        // Clean up the created letter to avoid dangling records with no credits
-        await supabase.from("letters").delete().eq("id", newLetter.id)
-        return NextResponse.json(
-          {
-            error: "No letter allowances remaining. Please upgrade your plan.",
-            needsSubscription: true,
-          },
-          { status: 403 },
-        )
-      }
-    }
-
     return NextResponse.json(
       {
         success: true,
         letterId: newLetter.id,
-        status: "pending_review",
+        status: "draft",
         isFreeTrial,
+        aiDraft: generatedContent,
       },
       { status: 200 },
     )
