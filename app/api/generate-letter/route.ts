@@ -52,64 +52,40 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { letterType, intakeData } = body
 
-    if (!process.env.GEMINI_API_KEY) {
-      console.error("[v0] Missing GEMINI_API_KEY")
+    if (!letterType || !intakeData) {
+      return NextResponse.json({ error: "letterType and intakeData are required" }, { status: 400 })
+    }
+
+    const functionsUrl =
+      process.env.SUPABASE_FUNCTION_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(".supabase.co", ".functions.supabase.co")
+
+    if (!functionsUrl) {
+      console.error("[v0] Missing Supabase functions URL")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    // 4. Call Gemini (AI Generation)
-    const prompt = `You are a professional legal attorney drafting a formal ${letterType} letter. Generate a professionally formatted legal letter with the following details:
-
-Sender: ${intakeData.senderName}
-Sender Address: ${intakeData.senderAddress}
-Recipient: ${intakeData.recipientName}
-Recipient Address: ${intakeData.recipientAddress}
-Issue: ${intakeData.issueDescription}
-Desired Outcome: ${intakeData.desiredOutcome}
-${intakeData.amountDemanded ? `Amount: $${intakeData.amountDemanded}` : ""}
-
-Write a professional, legally sound letter that:
-1. Is properly formatted with date and addresses
-2. Clearly states the issue
-3. References relevant facts
-4. Makes a clear demand or request
-5. Sets a reasonable deadline
-6. Maintains professional tone
-7. Is approximately 300-500 words
-
-Return only the letter content, no additional commentary.`
-
-    const aiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
-        process.env.GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      },
-    )
+    // 4. Call edge function for Gemini generation
+    const aiResponse = await fetch(`${functionsUrl}/ai-letter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ letterType, intakeData }),
+    })
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text()
-      console.error("[v0] Gemini API error:", errorText)
-      throw new Error(`Letter generation failed: ${aiResponse.status} ${aiResponse.statusText}`)
+      console.error("[v0] Edge function error:", errorText)
+      return NextResponse.json({ error: "Failed to generate letter draft" }, { status: 500 })
     }
 
     const aiData = await aiResponse.json()
-    const generatedContent = aiData.candidates?.[0]?.content?.parts?.[0]?.text || ""
-
+    const generatedContent = aiData?.content
     if (!generatedContent) {
-      console.error("[v0] Gemini returned empty content", aiData)
-      throw new Error("AI generated empty content")
+      console.error("[v0] Edge function returned empty content", aiData)
+      return NextResponse.json({ error: "AI returned empty content" }, { status: 500 })
     }
 
-    // 5. Save Draft
+    // 5. Save draft directly into admin review queue
     const { data: newLetter, error: insertError } = await supabase
       .from("letters")
       .insert({
@@ -118,7 +94,7 @@ Return only the letter content, no additional commentary.`
         title: `${letterType} - ${new Date().toLocaleDateString()}`,
         intake_data: intakeData,
         ai_draft_content: generatedContent,
-        status: "draft", // Explicitly set status to draft
+        status: "pending_review",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -130,12 +106,33 @@ Return only the letter content, no additional commentary.`
       throw insertError
     }
 
-    return NextResponse.json({
-      success: true,
-      content: generatedContent,
-      letterId: newLetter.id,
-      isFreeTrial,
-    })
+    if (!isFreeTrial) {
+      const { data: canDeduct, error: deductError } = await supabase.rpc("deduct_letter_allowance", {
+        u_id: user.id,
+      })
+
+      if (deductError || !canDeduct) {
+        // Clean up the created letter to avoid dangling records with no credits
+        await supabase.from("letters").delete().eq("id", newLetter.id)
+        return NextResponse.json(
+          {
+            error: "No letter allowances remaining. Please upgrade your plan.",
+            needsSubscription: true,
+          },
+          { status: 403 },
+        )
+      }
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        letterId: newLetter.id,
+        status: "pending_review",
+        isFreeTrial,
+      },
+      { status: 200 },
+    )
   } catch (error: any) {
     console.error("[v0] Letter generation error:", error)
     return NextResponse.json({ error: error.message || "Failed to generate letter" }, { status: 500 })
