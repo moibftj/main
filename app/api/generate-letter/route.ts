@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         title: `${letterType} - ${new Date().toLocaleDateString()}`,
         intake_data: intakeData,
         ai_draft_content: generatedContent,
-        status: "draft",
+        status: "pending_review",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -95,11 +95,29 @@ export async function POST(request: NextRequest) {
       throw insertError
     }
 
+    // Deduct allowance once we’ve successfully queued the letter (skip for free trial)
+    if (!isFreeTrial) {
+      const { data: canDeduct, error: deductError } = await supabase.rpc("deduct_letter_allowance", {
+        u_id: user.id,
+      })
+
+      if (deductError || !canDeduct) {
+        await supabase.from("letters").delete().eq("id", newLetter.id)
+        return NextResponse.json(
+          {
+            error: "No letter allowances remaining. Please upgrade your plan.",
+            needsSubscription: true,
+          },
+          { status: 403 },
+        )
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
         letterId: newLetter.id,
-        status: "draft",
+        status: "pending_review",
         isFreeTrial,
         aiDraft: generatedContent,
       },

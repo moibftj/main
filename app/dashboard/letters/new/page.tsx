@@ -67,6 +67,9 @@ export default function NewLetterPage() {
       setAiDraft(draft || "")
       setIsFreeTrial(!!freeTrialFlag)
       setShowPricingOverlay(!!freeTrialFlag)
+
+      // Automatically take the user to the letter status page (now queued for admin review)
+      router.push(`/dashboard/letters/${newLetterId}?submitted=1`)
     } catch (err: any) {
       console.error("[v0] Letter creation error:", err)
       setError(err.message || "Failed to create letter")
