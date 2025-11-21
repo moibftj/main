@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { type NextRequest, NextResponse } from "next/server"
 
-export const runtime = "edge"
+export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,32 +57,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "letterType and intakeData are required" }, { status: 400 })
     }
 
-    const functionsUrl =
-      process.env.SUPABASE_FUNCTION_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(".supabase.co", ".functions.supabase.co")
-
-    if (!functionsUrl) {
-      console.error("[v0] Missing Supabase functions URL")
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("[v0] Missing GEMINI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    // 4. Call edge function for Gemini generation
-    const aiResponse = await fetch(`${functionsUrl}/ai-letter`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ letterType, intakeData }),
-    })
+    // 4. Call Gemini directly (Node runtime) for a first draft
+    const prompt = buildPrompt(letterType, intakeData)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    const aiResult = await model.generateContent(prompt)
+    const generatedContent = aiResult.response?.text?.() || ""
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text()
-      console.error("[v0] Edge function error:", errorText)
-      return NextResponse.json({ error: "Failed to generate letter draft" }, { status: 500 })
-    }
-
-    const aiData = await aiResponse.json()
-    const generatedContent = aiData?.content
     if (!generatedContent) {
-      console.error("[v0] Edge function returned empty content", aiData)
+      console.error("[v0] Gemini returned empty content", aiResult)
       return NextResponse.json({ error: "AI returned empty content" }, { status: 500 })
     }
 
@@ -137,4 +126,24 @@ export async function POST(request: NextRequest) {
     console.error("[v0] Letter generation error:", error)
     return NextResponse.json({ error: error.message || "Failed to generate letter" }, { status: 500 })
   }
+}
+
+function buildPrompt(letterType: string, intakeData: Record<string, unknown>) {
+  const fields = (key: string) => `${key.replace(/_/g, " ")}: ${String(intakeData[key] ?? "")}`
+  const amountField = intakeData["amountDemanded"] ? `Amount: $${intakeData["amountDemanded"]}` : ""
+
+  return [
+    `You are a professional legal attorney drafting a formal ${letterType} letter.`,
+    "Write a professional, legally sound letter (300-500 words) with proper date/addresses, facts, clear demand, deadline, and professional tone.",
+    fields("senderName"),
+    fields("senderAddress"),
+    fields("recipientName"),
+    fields("recipientAddress"),
+    fields("issueDescription"),
+    fields("desiredOutcome"),
+    amountField,
+    "Return only the letter content, no additional commentary.",
+  ]
+    .filter(Boolean)
+    .join("\n")
 }
