@@ -1,209 +1,183 @@
-# Talk-To-My-Lawyer
+# Supabase CLI
 
-A professional SaaS platform for AI-powered legal letter generation with attorney review.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## Features
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-### Three User Roles
+This repository contains all the functionality for Supabase CLI.
 
-**Subscribers**
-- Generate AI-powered legal letters using Gemini AI
-- Submit letters for attorney review
-- Track letter status through 4-step pipeline
-- Download letters as PDF/HTML
-- Send approved letters via email
-- Apply coupon codes for discounts
-- Manage subscription plans
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-**Employees (Sales Affiliates)**
-- Unique coupon codes (20% discount for subscribers)
-- Earn 5% commission on subscriptions
-- Track earnings and redemptions
-- Social sharing for referrals
-- Zero access to subscriber letters (enforced at RLS level)
+## Getting started
 
-**Admins**
-- Review and approve/reject letter drafts with inline editing
-- Edit letter content before approval
-- Manage users across all roles
-- Process commission payouts
-- Analytics dashboard with key metrics
-- Full system oversight
+### Install the CLI
 
-## Tech Stack
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
-- **Framework**: Next.js 16 (App Router)
-- **Database**: Supabase (PostgreSQL + RLS)
-- **Auth**: Supabase Auth
-- **AI**: Google Gemini for letter generation
-- **Styling**: Tailwind CSS v4 + shadcn/ui
-- **TypeScript**: Full type safety
+```bash
+npm i supabase --save-dev
+```
 
-## Security
+To install the beta release channel:
 
-- Row Level Security (RLS) at database level
-- Role-based middleware routing
-- Employees completely blocked from letters table
-- Immutable audit trail for commissions
-- Multi-layer security (DB + Middleware + API)
-- Secure API endpoints with auth verification
+```bash
+npm i supabase@beta --save-dev
+```
 
-## Getting Started
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-### 1. Configure Environment Variables
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-You need to add the following environment variables in the **Vars** section of the v0 sidebar:
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-GEMINI_API_KEY=your_google_gemini_api_key
-\`\`\`
+<details>
+  <summary><b>macOS</b></summary>
 
-**Where to find these values:**
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project
-3. Navigate to **Settings > API**
-4. Copy the "Project URL" (for `NEXT_PUBLIC_SUPABASE_URL`)
-5. Copy the "anon public" key (for `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
-6. Get Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+  Available via [Homebrew](https://brew.sh). To install:
 
-### 2. Database Setup
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-Run the SQL scripts in order (you can run these directly in v0 or in your Supabase SQL editor):
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-1. `scripts/001_setup_schema.sql` - Create tables and types
-2. `scripts/002_setup_rls.sql` - Enable Row Level Security policies
-3. `scripts/003_seed_data.sql` - Seed initial data (optional)
-4. `scripts/004_create_functions.sql` - Create database functions
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### 3. Deploy
+<details>
+  <summary><b>Windows</b></summary>
 
-Click **"Publish"** in v0 to deploy to Vercel, or push to GitHub and deploy manually.
+  Available via [Scoop](https://scoop.sh). To install:
 
-## Environment Variables
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-See `.env.example` for the complete list:
+  To upgrade:
 
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-NEXT_PUBLIC_APP_URL=https://talk-to-my-lawyer.com
-GEMINI_API_KEY=your_google_gemini_api_key
-\`\`\`
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
-## Subscription Plans
+<details>
+  <summary><b>Linux</b></summary>
 
-- **Single Letter**: $299 one-time
-- **Monthly Plan**: $299/month (4 letters/month, billed yearly)
-- **Annual Plan**: $599/year (8 letters/year, best value)
+  Available via [Homebrew](https://brew.sh) and Linux packages.
 
-## Commission System
+  #### via Homebrew
 
-- Employees get unique 20% discount coupons
-- 5% commission on each subscription
-- Automatic commission tracking
-- Admin-controlled payouts
+  To install:
 
-## Letter Generation Flow
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-1. Subscriber selects letter type and fills out intake form
-2. AI generates professional draft using Gemini (requires GEMINI_API_KEY)
-3. Subscriber reviews draft and submits for attorney review
-4. Admin reviews, edits content inline, and approves/rejects
-5. Subscriber downloads approved letter as PDF or sends via email
-6. Complete audit trail maintained in database
+  To upgrade:
 
-## Key Features Implemented
+  ```sh
+  brew upgrade supabase
+  ```
 
-### AI Letter Generation
-- Integration with Google Gemini API
-- Multiple letter types (demand, cease & desist, contract breach, etc.)
-- Intelligent context-aware generation
-- Professional legal formatting
+  #### via Linux packages
 
-### PDF & Email Delivery
-- HTML-based PDF generation
-- Email delivery for approved letters
-- Custom message support
-- Recipient tracking
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
 
-### Analytics Dashboard (Admin)
-- Total users, letters, and revenue metrics
-- Pending review queue size
-- Top performing employees
-- Recent activity feed
-- Commission tracking
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
 
-## API Endpoints
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
 
-### Letter Management
-- `POST /api/generate-letter` - Generate AI-powered letter content
-- `POST /api/letters/[id]/submit` - Submit letter for attorney review
-- `POST /api/letters/[id]/approve` - Approve letter (admin only)
-- `POST /api/letters/[id]/reject` - Reject letter with feedback (admin only)
-- `GET /api/letters/[id]/pdf` - Download letter as PDF/HTML
-- `POST /api/letters/[id]/send-email` - Send letter via email
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
 
-### Subscriptions & Payments
-- `POST /api/create-checkout` - Create subscription with coupon code support
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
 
-## File Structure
+<details>
+  <summary><b>Other Platforms</b></summary>
 
-\`\`\`
-app/
-├── api/                      # API routes
-│   ├── generate-letter/      # AI generation endpoint
-│   ├── create-checkout/      # Subscription checkout
-│   └── letters/[id]/         # Letter management
-├── auth/                     # Authentication pages
-├── dashboard/                # Role-based dashboards
-│   ├── letters/              # Subscriber letter management
-│   ├── commissions/          # Employee commission tracking
-│   ├── coupons/              # Employee coupon management
-│   └── admin/                # Admin-only features
-components/                   # Reusable components
-lib/                          # Utilities and helpers
-scripts/                      # Database setup scripts
-\`\`\`
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
 
-## Troubleshooting
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
 
-### Error: "Missing Supabase environment variables"
+  Add a symlink to the binary in `$PATH` for easier access:
 
-**Solution:** Add the required environment variables in the **Vars** section of the v0 sidebar:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
 
-Find these values in your Supabase project's API settings.
+  This works on other non-standard Linux distros.
+</details>
 
-### Error: "Failed to generate letter"
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
 
-**Solution:** Add your `GEMINI_API_KEY` in the Vars section. Get a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
 
-### Users can't access their data
+  ```bash
+  pkgx install supabase
+  ```
 
-1. Check that user profiles exist in the `profiles` table
-2. Verify the `role` field is set correctly
-3. Ensure RLS policies are enabled (run `002_setup_rls.sql`)
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
 
-### Authentication not working
+### Run the CLI
 
-1. Verify email confirmation is enabled in Supabase Auth settings
-2. Check redirect URLs are configured correctly
-3. Review Supabase Auth logs in the dashboard
+```bash
+supabase bootstrap
+```
 
-## Documentation
+Or using npx:
 
-- [SETUP.md](./SETUP.md) - Detailed setup instructions
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment guide
+```bash
+npx supabase bootstrap
+```
 
-## Support
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-For issues or questions, open a support ticket at [vercel.com/help](https://vercel.com/help)
+## Docs
 
-## License
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-Proprietary - All rights reserved
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```
