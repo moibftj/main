@@ -1,0 +1,17 @@
+- olbGqG9fodtRuzZP
+
+sbp_25bdc8a561663ca127227fb86700bf019c036017
+
+postgresql://postgres:olbGqG9fodtRuzZP @db.gghpqgwrruwdeooathig.supabase.co:5432/postgres
+
+postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP @aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+
+postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP @aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+
+https://gghpqgwrruwdeooathig.supabase.co
+
+Anon=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnaHBxZ3dycnV3ZGVvb2F0aGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MjM0NTYsImV4cCI6MjA3OTI5OTQ1Nn0.sgzWigquFGbONcPSX-t1ITb8-tKNb_NHruUQoFvrtbo
+
+service role=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnaHBxZ3dycnV3ZGVvb2F0aGlnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzcyMzQ1NiwiZXhwIjoyMDc5Mjk5NDU2fQ.n-voDBUL_7aTyz1mzfq4H9R3a6W2om9ur_ofY_wopD0
+
+JWT=fY1/HCC4BsTP1yV76BiGyd3t9jvOUvLQlSFE095j2hJipyp8qX+0mIxzHdcAVs2zDuAztI/hte46Eq5sghO35g==
