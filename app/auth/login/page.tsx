@@ -40,18 +40,52 @@ export default function LoginPage() {
 
       console.log('[Login] User signed in:', authData.user.id)
 
-      // Get user role to redirect appropriately
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single()
+      // Get user role to redirect appropriately - retry a few times if profile doesn't exist yet
+      let profile = null
+      let profileError = null
+      
+      for (let i = 0; i < 3; i++) {
+        const result = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', authData.user.id)
+          .single()
+        
+        profile = result.data
+        profileError = result.error
+        
+        if (profile) break
+        
+        // Wait a bit before retrying
+        if (i < 2) {
+          console.log('[Login] Profile not found, retrying...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
 
       console.log('[Login] Profile data:', { profile, profileError })
 
-      if (profileError) {
-        console.error('[Login] Profile fetch error:', profileError)
-        // If profile doesn't exist, default to subscriber
+      if (!profile || profileError) {
+        console.warn('[Login] Profile not found after retries, creating it now...')
+        
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: authData.user.email,
+            role: 'subscriber',
+            full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0]
+          }, {
+            onConflict: 'id'
+          })
+        
+        if (createError) {
+          console.error('[Login] Failed to create profile:', createError)
+        }
+        
+        // Default to subscriber dashboard
+        console.log('[Login] Redirecting to default: /dashboard/letters')
         router.push('/dashboard/letters')
         router.refresh()
         return
