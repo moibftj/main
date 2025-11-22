@@ -35,7 +35,9 @@
       "Bash(vercel --token Si1Vxw3yc9dhVAIT0mglrFj5 --yes)",
       "Bash(vercel --token Si1Vxw3yc9dhVAIT0mglrFj5 --yes --force)",
       "Bash(vercel env add:*)",
-      "Bash(vercel --prod:*)"
+      "Bash(vercel --prod:*)",
+      "Bash(vercel ls:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
