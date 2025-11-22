@@ -129,41 +129,81 @@ export async function POST(request: NextRequest) {
         })
         .eq("id", newLetter.id)
 
-    if (insertError) {
-      console.error("[v0] Database insert error:", insertError)
-      throw insertError
-    }
+      if (updateError) {
+        console.error("[GenerateLetter] Failed to update letter with content:", updateError)
+        throw updateError
+      }
 
-    // Deduct allowance once we’ve successfully queued the letter (skip for free trial)
-    if (!isFreeTrial) {
-      const { data: canDeduct, error: deductError } = await supabase.rpc("deduct_letter_allowance", {
-        u_id: user.id,
+      // 7. Deduct allowance once we've successfully generated the letter (skip for free trial)
+      if (!isFreeTrial) {
+        const { data: canDeduct, error: deductError } = await supabase.rpc("deduct_letter_allowance", {
+          u_id: user.id,
+        })
+
+        if (deductError || !canDeduct) {
+          // Mark as failed instead of deleting
+          await supabase
+            .from("letters")
+            .update({ status: "failed", updated_at: new Date().toISOString() })
+            .eq("id", newLetter.id)
+          
+          return NextResponse.json(
+            {
+              error: "No letter allowances remaining. Please upgrade your plan.",
+              needsSubscription: true,
+            },
+            { status: 403 },
+          )
+        }
+      }
+
+      // 8. Log audit trail for letter creation
+      await supabase.rpc('log_letter_audit', {
+        p_letter_id: newLetter.id,
+        p_action: 'created',
+        p_old_status: 'generating',
+        p_new_status: 'pending_review',
+        p_notes: 'Letter generated successfully by AI'
       })
 
-      if (deductError || !canDeduct) {
-        await supabase.from("letters").delete().eq("id", newLetter.id)
-        return NextResponse.json(
-          {
-            error: "No letter allowances remaining. Please upgrade your plan.",
-            needsSubscription: true,
-          },
-          { status: 403 },
-        )
-      }
+      return NextResponse.json(
+        {
+          success: true,
+          letterId: newLetter.id,
+          status: "pending_review",
+          isFreeTrial,
+          aiDraft: generatedContent,
+        },
+        { status: 200 },
+      )
+    } catch (generationError: any) {
+      console.error("[GenerateLetter] Generation failed:", generationError)
+      
+      // Update letter status to failed
+      await supabase
+        .from("letters")
+        .update({ 
+          status: "failed",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", newLetter.id)
+      
+      // Log audit trail for failure
+      await supabase.rpc('log_letter_audit', {
+        p_letter_id: newLetter.id,
+        p_action: 'generation_failed',
+        p_old_status: 'generating',
+        p_new_status: 'failed',
+        p_notes: `Generation failed: ${generationError.message}`
+      })
+      
+      return NextResponse.json(
+        { error: generationError.message || "AI generation failed" },
+        { status: 500 }
+      )
     }
-
-    return NextResponse.json(
-      {
-        success: true,
-        letterId: newLetter.id,
-        status: "pending_review",
-        isFreeTrial,
-        aiDraft: generatedContent,
-      },
-      { status: 200 },
-    )
   } catch (error: any) {
-    console.error("[v0] Letter generation error:", error)
+    console.error("[GenerateLetter] Letter generation error:", error)
     return NextResponse.json({ error: error.message || "Failed to generate letter" }, { status: 500 })
   }
 }
