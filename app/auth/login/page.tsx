@@ -23,34 +23,54 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log('[Login] Starting login process...')
+      
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
+      console.log('[Login] Auth response:', { authData, signInError })
+
       if (signInError) throw signInError
 
-      // Get user role to redirect appropriately
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-
-        const roleRedirects: Record<string, string> = {
-          'subscriber': '/dashboard/letters',
-          'employee': '/dashboard/commissions',
-          'admin': '/dashboard/admin/letters'
-        }
-
-        router.push(roleRedirects[profile?.role || 'subscriber'])
-        router.refresh()
+      if (!authData.user) {
+        throw new Error('No user data returned from sign in')
       }
+
+      console.log('[Login] User signed in:', authData.user.id)
+
+      // Get user role to redirect appropriately
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single()
+
+      console.log('[Login] Profile data:', { profile, profileError })
+
+      if (profileError) {
+        console.error('[Login] Profile fetch error:', profileError)
+        // If profile doesn't exist, default to subscriber
+        router.push('/dashboard/letters')
+        router.refresh()
+        return
+      }
+
+      const roleRedirects: Record<string, string> = {
+        'subscriber': '/dashboard/letters',
+        'employee': '/dashboard/commissions',
+        'admin': '/dashboard/admin/letters'
+      }
+
+      const redirectPath = roleRedirects[profile?.role || 'subscriber']
+      console.log('[Login] Redirecting to:', redirectPath)
+      
+      router.push(redirectPath)
+      router.refresh()
     } catch (err: any) {
+      console.error('[Login] Error:', err)
       setError(err.message || 'Failed to sign in')
-    } finally {
       setLoading(false)
     }
   }
