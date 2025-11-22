@@ -61,13 +61,11 @@ export function SubscriptionCard() {
     setError(null)
 
     try {
-      const upperCode = coupon.toUpperCase()
-
-      // Check employee coupons (including TALK3)
+      // Check employee coupons (supports special characters)
       const { data, error } = await supabase
         .from('employee_coupons')
         .select('*')
-        .eq('code', upperCode)
+        .eq('code', coupon)
         .eq('is_active', true)
         .single()
 
@@ -169,7 +167,7 @@ export function SubscriptionCard() {
             <Input
               placeholder="Enter coupon code"
               value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              onChange={(e) => setCouponCode(e.target.value)}
               disabled={couponApplied}
             />
           </div>

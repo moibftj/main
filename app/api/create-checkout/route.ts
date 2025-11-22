@@ -16,25 +16,23 @@ export async function POST(request: NextRequest) {
     let discount = 0
     let employeeId = null
     let isSuperUserCoupon = false
-    
-    if (couponCode) {
-      const upperCode = couponCode.toUpperCase()
-      
-      if (upperCode === 'TALK3') {
-        isSuperUserCoupon = true
-        discount = 100 // 100% off for TALK3 super user
-      } else {
-        // Check employee coupons (20% discount)
-        const { data: coupon } = await supabase
-          .from('employee_coupons')
-          .select('*')
-          .eq('code', upperCode)
-          .eq('is_active', true)
-          .single()
 
-        if (coupon) {
-          discount = coupon.discount_percent
-          employeeId = coupon.employee_id
+    if (couponCode) {
+      // Check employee coupons in database (including special promo codes)
+      const { data: coupon } = await supabase
+        .from('employee_coupons')
+        .select('*')
+        .eq('code', couponCode)
+        .eq('is_active', true)
+        .single()
+
+      if (coupon) {
+        discount = coupon.discount_percent
+        employeeId = coupon.employee_id
+
+        // If 100% discount, mark as super user
+        if (discount === 100) {
+          isSuperUserCoupon = true
         }
       }
     }
@@ -86,7 +84,7 @@ export async function POST(request: NextRequest) {
         .from('coupon_usage')
         .insert({
           user_id: user.id,
-          coupon_code: couponCode.toUpperCase(),
+          coupon_code: couponCode,
           employee_id: employeeId,
           discount_percent: discount,
           amount_before: basePrice,
@@ -112,16 +110,16 @@ export async function POST(request: NextRequest) {
       const { data: currentCoupon } = await supabase
         .from('employee_coupons')
         .select('usage_count')
-        .eq('code', couponCode.toUpperCase())
+        .eq('code', couponCode)
         .single()
 
       await supabase
         .from('employee_coupons')
-        .update({ 
+        .update({
           usage_count: (currentCoupon?.usage_count || 0) + 1,
           updated_at: new Date().toISOString()
         })
-        .eq('code', couponCode.toUpperCase())
+        .eq('code', couponCode)
     }
 
     return NextResponse.json({ 
