@@ -57,47 +57,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      console.error("[v0] Missing GEMINI_API_KEY")
+      console.error("[GenerateLetter] Missing GEMINI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
-    // 4. Call Google Gemini API directly (Node runtime) for a first draft
-    const prompt = buildPrompt(letterType, intakeData)
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
-      })
-    })
-
-    if (!response.ok) {
-      console.error("[v0] Gemini API error:", response.status, response.statusText)
-      return NextResponse.json({ error: "AI service unavailable" }, { status: 500 })
-    }
-
-    const aiResult = await response.json()
-    const generatedContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || ""
-
-    if (!generatedContent) {
-      console.error("[v0] Gemini returned empty content", aiResult)
-      return NextResponse.json({ error: "AI returned empty content" }, { status: 500 })
-    }
-
-    // 5. Save draft directly into admin review queue
+    // 4. Create letter record with 'generating' status
     const { data: newLetter, error: insertError } = await supabase
       .from("letters")
       .insert({
@@ -105,13 +69,65 @@ export async function POST(request: NextRequest) {
         letter_type: letterType,
         title: `${letterType} - ${new Date().toLocaleDateString()}`,
         intake_data: intakeData,
-        ai_draft_content: generatedContent,
-        status: "pending_review",
+        status: "generating",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .select()
       .single()
+
+    if (insertError) {
+      console.error("[GenerateLetter] Database insert error:", insertError)
+      return NextResponse.json({ error: "Failed to create letter record" }, { status: 500 })
+    }
+
+    try {
+      // 5. Call Google Gemini API directly (Node runtime) for a first draft
+      const prompt = buildPrompt(letterType, intakeData)
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+          }
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("[GenerateLetter] Gemini API error:", response.status, errorText)
+        throw new Error(`Gemini API returned ${response.status}`)
+      }
+
+      const aiResult = await response.json()
+      const generatedContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || ""
+
+      if (!generatedContent) {
+        console.error("[GenerateLetter] Gemini returned empty content", aiResult)
+        throw new Error("AI returned empty content")
+      }
+
+      // 6. Update letter with generated content and move to pending_review
+      const { error: updateError } = await supabase
+        .from("letters")
+        .update({
+          ai_draft_content: generatedContent,
+          status: "pending_review",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", newLetter.id)
 
     if (insertError) {
       console.error("[v0] Database insert error:", insertError)
