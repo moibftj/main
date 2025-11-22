@@ -30,7 +30,12 @@
       "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Check key functions exist\nSELECT \n    ''Functions Check'' as check_type,\n    COUNT(*) as count\nFROM pg_proc p\nJOIN pg_namespace n ON p.pronamespace = n.oid\nWHERE n.nspname = ''public''\n  AND p.proname IN (\n    ''add_letter_allowances'',\n    ''check_letter_allowance'',\n    ''deduct_letter_allowance'',\n    ''validate_coupon'',\n    ''get_commission_summary'',\n    ''handle_new_user'',\n    ''create_employee_coupon'',\n    ''get_user_role''\n  );\n\")",
       "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Check RLS policies count\nSELECT \n    tablename,\n    COUNT(*) as policy_count\nFROM pg_policies\nWHERE schemaname = ''public''\nGROUP BY tablename\nORDER BY tablename;\n\")",
       "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Final verification summary\nSELECT \n    ''✅ Migration Status: SUCCESS'' as status\nUNION ALL\nSELECT ''-----------------------------------''\nUNION ALL\nSELECT ''📊 Tables: 9/9 created'' \nUNION ALL\nSELECT ''🔒 RLS: Enabled on all 5 core tables''\nUNION ALL\nSELECT ''⚙️  Functions: 9/8+ created''\nUNION ALL\nSELECT ''🎯 Policies: 38 RLS policies active''\nUNION ALL\nSELECT ''🔔 Triggers: Auto-create profiles & coupons''\nUNION ALL\nSELECT ''📝 Enums: 5 types with proper values''\nUNION ALL\nSELECT ''-----------------------------------''\nUNION ALL\nSELECT ''🎉 Database is fully migrated!'';\n\")",
-      "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Drop the plan_type enum version (keep the TEXT version)\nDROP FUNCTION IF EXISTS public.add_letter_allowances(uuid, plan_type);\n\")"
+      "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Drop the plan_type enum version (keep the TEXT version)\nDROP FUNCTION IF EXISTS public.add_letter_allowances(uuid, plan_type);\n\")",
+      "Bash(vercel login:*)",
+      "Bash(vercel --token Si1Vxw3yc9dhVAIT0mglrFj5 --yes)",
+      "Bash(vercel --token Si1Vxw3yc9dhVAIT0mglrFj5 --yes --force)",
+      "Bash(vercel env add:*)",
+      "Bash(vercel --prod:*)"
     ],
     "deny": [],
     "ask": []
