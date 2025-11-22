@@ -3,6 +3,24 @@
 ## Overview
 This document describes all PostgreSQL functions implemented in the database and their corresponding API endpoints.
 
+## Letter Status Flow
+
+The complete letter lifecycle uses these statuses:
+
+```
+draft → generating → pending_review → under_review → approved/rejected → completed/failed
+```
+
+### Status Definitions:
+- **`draft`** - Initial state, user hasn't submitted
+- **`generating`** - AI is creating the letter content (Gemini API call in progress)
+- **`pending_review`** - Letter generated successfully, waiting for admin review
+- **`under_review`** - Admin has started reviewing the letter
+- **`approved`** - Admin approved the letter (legacy, now uses `completed`)
+- **`rejected`** - Admin rejected the letter, requires revision
+- **`completed`** - Letter fully approved and ready for user
+- **`failed`** - Generation or processing failed (AI error, allowance issue, etc.)
+
 ## Database Functions
 
 ### 1. `deduct_letter_allowance(u_id UUID)`
