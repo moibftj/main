@@ -10,27 +10,27 @@ const PLANS = [
   {
     id: 'one_time',
     name: 'Single Letter',
-    price: 50,
+    price: 299,
     credits: 1,
     description: 'One-time purchase',
     features: ['1 Legal Letter', 'Attorney Review', 'PDF Download', 'Email Delivery']
   },
   {
     id: 'standard_4_month',
-    name: '4 Letters Bundle',
+    name: 'Monthly Plan',
     price: 299,
     credits: 4,
-    description: 'Best for ongoing needs',
-    features: ['4 Legal Letters', 'Attorney Review', 'Priority Support', 'Valid for 1 year'],
+    description: '4 letters per month',
+    features: ['4 Legal Letters per month', 'Attorney Review', 'Priority Support', 'Monthly billing'],
     popular: true
   },
   {
     id: 'premium_8_month',
-    name: '8 Letters Bundle',
+    name: 'Yearly Plan',
     price: 599,
     credits: 8,
-    description: 'Maximum value',
-    features: ['8 Legal Letters', 'Attorney Review', 'Priority Support', 'Valid for 1 year', 'Best Value']
+    description: '8 letters per year',
+    features: ['8 Legal Letters per year', 'Attorney Review', 'Priority Support', 'Annual billing (Save $1988)', 'Best Value']
   }
 ]
 

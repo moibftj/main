@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
     }
 
     const planConfig: Record<string, { price: number, letters: number, planType: string }> = {
-      'one_time': { price: 50, letters: 1, planType: 'one_time' },
-      'standard_4_month': { price: 200, letters: 4, planType: 'standard_4_month' },
-      'premium_8_month': { price: 600, letters: 8, planType: 'premium_8_month' }
+      'one_time': { price: 299, letters: 1, planType: 'one_time' },
+      'standard_4_month': { price: 299, letters: 4, planType: 'standard_4_month' },
+      'premium_8_month': { price: 599, letters: 8, planType: 'premium_8_month' }
     }
 
     const selectedPlan = planConfig[planType]

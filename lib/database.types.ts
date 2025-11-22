@@ -1,10 +1,13 @@
 export type UserRole = 'subscriber' | 'employee' | 'admin'
-export type LetterStatus = 
-  | 'draft' 
-  | 'pending_review' 
-  | 'under_review' 
-  | 'approved' 
+export type LetterStatus =
+  | 'draft'
+  | 'generating'
+  | 'pending_review'
+  | 'under_review'
+  | 'approved'
+  | 'completed'
   | 'rejected'
+  | 'failed'
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due'
 export type CommissionStatus = 'pending' | 'paid'
 
