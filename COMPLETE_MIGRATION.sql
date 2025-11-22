@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Create employee_coupons table
 CREATE TABLE IF NOT EXISTS employee_coupons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    employee_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    employee_id UUID NOT NULL UNIQUE REFERENCES profiles(id) ON DELETE CASCADE,
     code TEXT NOT NULL UNIQUE,
     discount_percent INT CHECK (discount_percent BETWEEN 0 AND 100) DEFAULT 20,
     is_active BOOLEAN DEFAULT true,
@@ -419,7 +419,10 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to add allowances on purchase
-CREATE OR REPLACE FUNCTION add_letter_allowances(sub_id UUID, plan plan_type)
+-- Drop old version with plan_type enum if it exists
+DROP FUNCTION IF EXISTS add_letter_allowances(UUID, plan_type);
+
+CREATE OR REPLACE FUNCTION add_letter_allowances(sub_id UUID, plan TEXT)
 RETURNS VOID AS $$
 DECLARE
     letters_to_add INT;
@@ -550,6 +553,9 @@ CREATE TRIGGER trigger_create_employee_coupon
   FOR EACH ROW
   EXECUTE FUNCTION create_employee_coupon();-- Add missing fields to subscriptions table
 ALTER TABLE subscriptions
+ADD COLUMN IF NOT EXISTS plan TEXT,
+ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) DEFAULT 299.00,
+ADD COLUMN IF NOT EXISTS discount NUMERIC(10,2) DEFAULT 0.00,
 ADD COLUMN IF NOT EXISTS credits_remaining INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS remaining_letters INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS plan_type TEXT,
@@ -559,6 +565,26 @@ ADD COLUMN IF NOT EXISTS last_reset_at TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE profiles
 ADD COLUMN IF NOT EXISTS is_super_user BOOLEAN DEFAULT FALSE;
 
+-- Add missing fields to commissions table
+ALTER TABLE commissions
+ADD COLUMN IF NOT EXISTS commission_rate NUMERIC(5,4) DEFAULT 0.05;
+
+-- Add missing fields to employee_coupons table
+ALTER TABLE employee_coupons
+ADD COLUMN IF NOT EXISTS usage_count INT DEFAULT 0;
+
+-- Add unique constraint to employee_coupons.employee_id if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'employee_coupons_employee_id_key'
+        AND conrelid = 'employee_coupons'::regclass
+    ) THEN
+        ALTER TABLE employee_coupons ADD CONSTRAINT employee_coupons_employee_id_key UNIQUE (employee_id);
+    END IF;
+END $$;
+
 -- Update existing subscriptions to set plan_type based on plan
 UPDATE subscriptions
 SET plan_type = CASE
@@ -567,7 +593,7 @@ SET plan_type = CASE
   WHEN plan LIKE '%8%' OR plan LIKE '%premium%' THEN 'monthly_premium'
   ELSE plan
 END
-WHERE plan_type IS NULL;
+WHERE plan_type IS NULL AND plan IS NOT NULL;
 
 -- Set initial credits for existing subscriptions
 UPDATE subscriptions
@@ -584,7 +610,7 @@ SET
     WHEN plan LIKE '%8%' OR plan LIKE '%premium%' THEN 8
     ELSE 0
   END
-WHERE credits_remaining = 0;
+WHERE credits_remaining = 0 AND plan IS NOT NULL;
 
 -- Add indexes for new fields
 CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_type ON subscriptions(plan_type);-- Add missing check_letter_allowance function
