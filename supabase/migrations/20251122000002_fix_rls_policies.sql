@@ -1,16 +1,7 @@
 -- Fix RLS policies to avoid circular dependency in get_user_role function
 
 -- Drop the existing helper function that causes circular dependency
-DROP FUNCTION IF EXISTS public.get_user_role();
-
--- Create a better helper function that doesn't query profiles table
-CREATE OR REPLACE FUNCTION auth.user_role()
-RETURNS TEXT AS $$
-  SELECT COALESCE(
-    (SELECT role FROM public.profiles WHERE id = auth.uid() LIMIT 1),
-    'subscriber'
-  )::TEXT;
-$$ LANGUAGE SQL STABLE SECURITY DEFINER;
+DROP FUNCTION IF EXISTS public.get_user_role() CASCADE;
 
 -- PROFILES POLICIES - Simplified to avoid circular dependency
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
