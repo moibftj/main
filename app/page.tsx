@@ -197,7 +197,7 @@ export default async function HomePage({
                 </li>
               </ul>
               <Link href="/auth/signup">
-                <Button className="w-full bg-white text-blue-600 hover:bg-blue-50">Getarted</Button>
+                <Button className="w-full bg-white text-blue-600 hover:bg-blue-50">Get Started</Button>
               </Link>
             </div>
 

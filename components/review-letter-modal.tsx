@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
+import { Input } from './ui/input'
 import type { Letter } from '@/lib/database.types'
+import { Wand2, Loader2 } from 'lucide-react'
 
 export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { full_name: string; email: string } } }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,6 +16,9 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
   const [rejectionReason, setRejectionReason] = useState('')
   const [action, setAction] = useState<'approve' | 'reject' | null>(null)
   const [loading, setLoading] = useState(false)
+  const [aiImproving, setAiImproving] = useState(false)
+  const [aiInstruction, setAiInstruction] = useState('')
+  const [showAiInput, setShowAiInput] = useState(false)
   const router = useRouter()
 
   const handleOpen = async () => {
@@ -29,6 +34,40 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
       } catch (error) {
         console.error('[v0] Failed to start review:', error)
       }
+    }
+  }
+
+  const handleAiImprove = async () => {
+    if (!aiInstruction.trim()) {
+      alert('Please enter an improvement instruction')
+      return
+    }
+
+    setAiImproving(true)
+    try {
+      const response = await fetch(`/api/letters/${letter.id}/improve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: finalContent,
+          instruction: aiInstruction
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to improve content')
+      }
+
+      const { improvedContent } = await response.json()
+      setFinalContent(improvedContent)
+      setAiInstruction('')
+      setShowAiInput(false)
+    } catch (error: any) {
+      console.error('[v0] AI improvement error:', error)
+      alert(error.message || 'Failed to improve content with AI')
+    } finally {
+      setAiImproving(false)
     }
   }
 
@@ -110,15 +149,80 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
             </div>
           </div>
 
-          {/* Editable Content */}
+          {/* Editable Content with AI Improvement */}
           <div>
-            <Label htmlFor="content">Letter Content (Editable)</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="content">Letter Content (Editable)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAiInput(!showAiInput)}
+                className="flex items-center gap-2"
+              >
+                <Wand2 className="h-4 w-4" />
+                AI Improve
+              </Button>
+            </div>
+
+            {showAiInput && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+                <div>
+                  <Label htmlFor="aiInstruction" className="text-blue-900">
+                    How should the AI improve this letter?
+                  </Label>
+                  <Input
+                    id="aiInstruction"
+                    value={aiInstruction}
+                    onChange={(e) => setAiInstruction(e.target.value)}
+                    placeholder="e.g., 'Make it more assertive' or 'Add legal citations' or 'Improve clarity'"
+                    className="mt-2"
+                    disabled={aiImproving}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleAiImprove}
+                    disabled={aiImproving || !aiInstruction.trim()}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    {aiImproving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Improving...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-4 w-4" />
+                        Improve with AI
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowAiInput(false)
+                      setAiInstruction('')
+                    }}
+                    disabled={aiImproving}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <Textarea
               id="content"
               value={finalContent}
               onChange={(e) => setFinalContent(e.target.value)}
-              className="min-h-[400px] font-mono text-sm mt-2"
+              className="min-h-[400px] font-mono text-sm"
               placeholder="Edit the letter content before approval..."
+              disabled={aiImproving}
             />
           </div>
 
