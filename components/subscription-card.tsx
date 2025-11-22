@@ -62,20 +62,8 @@ export function SubscriptionCard() {
 
     try {
       const upperCode = coupon.toUpperCase()
-      
-      if (upperCode === 'TALK3') {
-        const plan = PLANS.find(p => p.id === selectedPlan)
-        if (plan) {
-          const discountAmount = (plan.price * 20) / 100
-          setDiscount(discountAmount)
-          setCouponApplied(true)
-          setError(null)
-        }
-        setLoading(false)
-        return
-      }
 
-      // Check employee coupons
+      // Check employee coupons (including TALK3)
       const { data, error } = await supabase
         .from('employee_coupons')
         .select('*')
@@ -176,11 +164,10 @@ export function SubscriptionCard() {
 
       {/* Coupon Code */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="font-semibold mb-4">Have a coupon code?</h3>
         <div className="flex gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Enter coupon code (e.g., TALK3 for special discount)"
+              placeholder="Enter coupon code"
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
               disabled={couponApplied}
