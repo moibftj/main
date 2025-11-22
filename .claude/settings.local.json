@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(cp:*)",
+      "Bash(npm run dev)",
+      "WebFetch(domain:docs.z.ai)",
+      "Bash(npm run build)",
+      "Bash(pkill:*)",
+      "Bash(curl:*)",
+      "Bash(sh:*)",
+      "Bash(wget:*)",
+      "Bash(sudo dpkg:*)",
+      "Bash(bash:*)",
+      "Bash(chmod:*)",
+      "Bash(sudo mv:*)",
+      "Bash(tar:*)",
+      "Bash(supabase login:*)",
+      "Bash(supabase link:*)",
+      "Bash(supabase db push:*)",
+      "Bash(supabase db diff:*)",
+      "Bash(supabase db remote:*)",
+      "Bash(psql:*)",
+      "Bash(export:*)",
+      "Bash(supabase status --help:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
