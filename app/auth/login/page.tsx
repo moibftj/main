@@ -49,7 +49,7 @@ export default function LoginPage() {
           .from('profiles')
           .select('role')
           .eq('id', authData.user.id)
-          .single()
+          .maybeSingle()
         
         profile = result.data
         profileError = result.error
@@ -65,23 +65,29 @@ export default function LoginPage() {
 
       console.log('[Login] Profile data:', { profile, profileError })
 
-      if (!profile || profileError) {
-        console.warn('[Login] Profile not found after retries, creating it now...')
+      if (!profile) {
+        console.warn('[Login] Profile not found after retries, creating via API...')
         
-        // Create profile if it doesn't exist
-        const { error: createError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            email: authData.user.email,
-            role: 'subscriber',
-            full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0]
-          }, {
-            onConflict: 'id'
+        // Create profile using the API endpoint (has service role access)
+        try {
+          const createResponse = await fetch('/api/create-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: authData.user.id,
+              email: authData.user.email || email,
+              role: 'subscriber',
+              fullName: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User'
+            })
           })
-        
-        if (createError) {
-          console.error('[Login] Failed to create profile:', createError)
+          
+          if (createResponse.ok) {
+            console.log('[Login] Profile created successfully via API')
+          } else {
+            console.error('[Login] Failed to create profile via API:', await createResponse.text())
+          }
+        } catch (err) {
+          console.error('[Login] Error calling create-profile API:', err)
         }
         
         // Default to subscriber dashboard
