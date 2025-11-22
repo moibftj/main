@@ -41,7 +41,7 @@ export async function POST(
     const { error: updateError } = await supabase
       .from('letters')
       .update({
-        status: 'approved',
+        status: 'completed',
         final_content: finalContent,
         review_notes: reviewNotes,
         reviewed_by: user.id,
@@ -57,7 +57,7 @@ export async function POST(
       p_letter_id: id,
       p_action: 'approved',
       p_old_status: letter?.status || 'unknown',
-      p_new_status: 'approved',
+      p_new_status: 'completed',
       p_notes: reviewNotes || 'Letter approved by admin'
     })
 
