@@ -37,7 +37,8 @@
       "Bash(vercel env add:*)",
       "Bash(vercel --prod:*)",
       "Bash(vercel ls:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- First, let''s see if TALK3 coupon exists\nSELECT * FROM employee_coupons WHERE code = ''TALK3'';\n\")"
     ],
     "deny": [],
     "ask": []
