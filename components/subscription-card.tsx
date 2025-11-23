@@ -111,7 +111,14 @@ export function SubscriptionCard() {
       }
 
       const data = await response.json()
-      
+
+      // If Stripe checkout URL is returned, redirect to it
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+
+      // For free subscriptions (100% discount), redirect to success page
       router.push('/dashboard/subscription?success=true')
       router.refresh()
     } catch (err: any) {
