@@ -3,7 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { SubscriptionCard } from '@/components/subscription-card'
+import { PaymentVerifier } from '@/components/payment-verifier'
 import { format } from 'date-fns'
+import { Suspense } from 'react'
 
 export default async function SubscriptionPage() {
   const { profile } = await getUser()
@@ -25,6 +27,9 @@ export default async function SubscriptionPage() {
 
   return (
     <DashboardLayout>
+      <Suspense fallback={null}>
+        <PaymentVerifier />
+      </Suspense>
       <h1 className="text-3xl font-bold text-foreground mb-8">Subscription</h1>
 
       {subscription ? (
