@@ -234,6 +234,22 @@ export async function getAdminSessionWithRole(): Promise<{
 }
 
 /**
+ * Require admin authentication for API routes (any admin type)
+ */
+export async function requireAdminAuth(): Promise<NextResponse | undefined> {
+  const authenticated = await isAdminAuthenticated()
+
+  if (!authenticated) {
+    return NextResponse.json(
+      { error: 'Admin authentication required' },
+      { status: 401 }
+    )
+  }
+
+  return undefined
+}
+
+/**
  * Require super admin authentication for API routes
  */
 export async function requireSuperAdminAuth(): Promise<NextResponse | undefined> {
