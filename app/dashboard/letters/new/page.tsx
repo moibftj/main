@@ -2,12 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { SubscriptionModal } from "@/components/subscription-modal"
+import { createClient } from "@/lib/supabase/client"
 
 const LETTER_TYPES = [
   { value: "demand_letter", label: "Demand Letter", description: "Formal demand for payment or action" },
@@ -27,6 +29,9 @@ export default function NewLetterPage() {
   const [letterId, setLetterId] = useState<string | null>(null)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
   const [showPricingOverlay, setShowPricingOverlay] = useState(false)
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [hasSubscription, setHasSubscription] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
   const [formData, setFormData] = useState({
     senderName: "",
     senderAddress: "",
@@ -38,8 +43,46 @@ export default function NewLetterPage() {
     supportingDocuments: "",
   })
 
+  useEffect(() => {
+    checkSubscription()
+  }, [])
+
+  const checkSubscription = async () => {
+    setIsChecking(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setIsChecking(false)
+        return
+      }
+
+      // Check for active subscription with credits
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('credits_remaining, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single()
+
+      setHasSubscription(!!(subscription && subscription.credits_remaining > 0))
+    } catch (error) {
+      console.error('Error checking subscription:', error)
+    } finally {
+      setIsChecking(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check if user has subscription before generating
+    if (!hasSubscription) {
+      setShowSubscriptionModal(true)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -80,6 +123,11 @@ export default function NewLetterPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <SubscriptionModal
+        show={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        message="To generate and submit attorney drafts, please choose a subscription plan:"
+      />
       <h1 className="text-3xl font-bold text-foreground mb-8">Create New Letter</h1>
       {!selectedType ? (
         <div className="bg-card rounded-lg shadow-sm border p-6">
@@ -207,13 +255,18 @@ export default function NewLetterPage() {
             {error && <div className="mt-4 p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
             <div className="mt-6 flex gap-4">
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Generating..." : "Generate Attorney Draft"}
+              <Button type="submit" disabled={loading || isChecking} className="flex-1">
+                {loading ? "Generating..." : hasSubscription ? "Generate Attorney Draft" : "Subscribe to Generate"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.push("/dashboard/letters")}>
                 Cancel
               </Button>
             </div>
+            {!hasSubscription && !isChecking && (
+              <p className="mt-2 text-sm text-muted-foreground text-center">
+                A subscription is required to generate and submit attorney drafts
+              </p>
+            )}
           </div>
         </form>
       )}

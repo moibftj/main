@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql:*)",
-      "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Verify TALK3 coupon\nSELECT \n    code,\n    discount_percent,\n    is_active,\n    CASE WHEN employee_id IS NULL THEN ''System Coupon'' ELSE ''Employee Coupon'' END as coupon_type\nFROM employee_coupons \nWHERE code = ''TALK3'';\n\")"
+      "Bash(PGPASSWORD='olbGqG9fodtRuzZP' psql \"postgresql://postgres.gghpqgwrruwdeooathig:olbGqG9fodtRuzZP@aws-1-ap-south-1.pooler.supabase.com:5432/postgres\" -c \"\n-- Verify TALK3 coupon\nSELECT \n    code,\n    discount_percent,\n    is_active,\n    CASE WHEN employee_id IS NULL THEN ''System Coupon'' ELSE ''Employee Coupon'' END as coupon_type\nFROM employee_coupons \nWHERE code = ''TALK3'';\n\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
