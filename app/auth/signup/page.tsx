@@ -15,7 +15,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<'subscriber' | 'employee' | 'admin'>('subscriber')
+  const [role, setRole] = useState<'subscriber' | 'employee'>('subscriber')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -46,8 +46,7 @@ export default function SignUpPage() {
         // Redirect to role-specific dashboard after email confirmation
         const roleRedirects: Record<string, string> = {
           'subscriber': '/dashboard/letters',
-          'employee': '/dashboard/commissions',
-          'admin': '/dashboard/admin/letters'
+          'employee': '/dashboard/commissions'
         }
         redirectUrl = window.location.origin + roleRedirects[role]
       }
