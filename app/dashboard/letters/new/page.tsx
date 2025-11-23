@@ -59,16 +59,25 @@ export default function NewLetterPage() {
       }
 
       // Check for active subscription with credits
-      const { data: subscription } = await supabase
+      const { data: subscriptions, error } = await supabase
         .from('subscriptions')
         .select('credits_remaining, status')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
 
+      if (error) {
+        console.error('Error fetching subscription:', error)
+        setHasSubscription(false)
+        return
+      }
+
+      const subscription = subscriptions?.[0]
       setHasSubscription(!!(subscription && subscription.credits_remaining > 0))
     } catch (error) {
       console.error('Error checking subscription:', error)
+      setHasSubscription(false)
     } finally {
       setIsChecking(false)
     }

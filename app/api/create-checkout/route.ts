@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
         .select()
         .single()
 
-      if (subError) throw subError
+      if (subError) {
+        console.error('[Checkout] Subscription creation error:', subError)
+        throw new Error(`Failed to create subscription: ${subError.message}`)
+      }
 
       if (isSuperUserCoupon) {
         await supabase
