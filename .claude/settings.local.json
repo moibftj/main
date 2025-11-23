@@ -6,7 +6,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(vercel env add:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
