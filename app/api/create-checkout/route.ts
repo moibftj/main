@@ -86,14 +86,18 @@ export async function POST(request: NextRequest) {
       }
 
       if (isSuperUserCoupon) {
-        await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
           .update({ is_super_user: true })
           .eq('id', user.id)
+
+        if (profileError) {
+          console.error('[Checkout] Profile update error:', profileError)
+        }
       }
 
       if (couponCode) {
-        await supabase
+        const { error: usageError } = await supabase
           .from('coupon_usage')
           .insert({
             user_id: user.id,
@@ -103,12 +107,17 @@ export async function POST(request: NextRequest) {
             amount_before: basePrice,
             amount_after: finalPrice
           })
+
+        if (usageError) {
+          console.error('[Checkout] Coupon usage tracking error:', usageError)
+          // Don't fail the checkout if usage tracking fails
+        }
       }
 
       if (employeeId && subscription && !isSuperUserCoupon) {
         const commissionAmount = finalPrice * 0.05
 
-        await supabase
+        const { error: commissionError } = await supabase
           .from('commissions')
           .insert({
             employee_id: employeeId,
@@ -119,20 +128,28 @@ export async function POST(request: NextRequest) {
             status: 'pending'
           })
 
+        if (commissionError) {
+          console.error('[Checkout] Commission creation error:', commissionError)
+        }
+
         // Update coupon usage count
         const { data: currentCoupon } = await supabase
           .from('employee_coupons')
           .select('usage_count')
           .eq('code', couponCode)
-          .single()
+          .maybeSingle()
 
-        await supabase
+        const { error: updateError } = await supabase
           .from('employee_coupons')
           .update({
             usage_count: (currentCoupon?.usage_count || 0) + 1,
             updated_at: new Date().toISOString()
           })
           .eq('code', couponCode)
+
+        if (updateError) {
+          console.error('[Checkout] Coupon update error:', updateError)
+        }
       }
 
       return NextResponse.json({
@@ -184,10 +201,13 @@ export async function POST(request: NextRequest) {
       url: session.url
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Checkout] Error:', error)
     return NextResponse.json(
-      { error: 'Failed to create checkout' },
+      {
+        error: 'Failed to create checkout',
+        details: error.message || 'Unknown error'
+      },
       { status: 500 }
     )
   }
