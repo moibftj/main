@@ -174,7 +174,6 @@ export default function SignUpPage() {
                 <SelectContent>
                   <SelectItem value="subscriber">Subscriber - Generate Letters</SelectItem>
                   <SelectItem value="employee">Employee - Earn Commissions</SelectItem>
-                  <SelectItem value="admin">Admin - Manage Letters</SelectItem>
                 </SelectContent>
               </Select>
             </div>
