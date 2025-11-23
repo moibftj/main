@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Button } from './ui/button'
 import { createClient } from '@/lib/supabase/server'
-import { Home, FileText, Plus, CreditCard, Inbox, Users, DollarSign, BarChart3, Ticket } from 'lucide-react'
+import { Home, FileText, Plus, CreditCard, DollarSign, Ticket } from 'lucide-react'
 
 export async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await getUser()
@@ -27,14 +27,6 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
       { name: 'Dashboard', href: '/dashboard', icon: Home },
       { name: 'Commissions', href: '/dashboard/commissions', icon: DollarSign },
       { name: 'My Coupons', href: '/dashboard/coupons', icon: Ticket },
-    ],
-    admin: [
-      { name: 'Dashboard', href: '/dashboard/admin', icon: Home },
-      { name: 'Review Queue', href: '/dashboard/admin/letters', icon: Inbox },
-      { name: 'All Letters', href: '/dashboard/admin/all-letters', icon: FileText },
-      { name: 'Users', href: '/dashboard/admin/users', icon: Users },
-      { name: 'Commissions', href: '/dashboard/admin/commissions', icon: DollarSign },
-      { name: 'Analytics', href: '/dashboard/admin/analytics', icon: BarChart3 },
     ]
   }
 
