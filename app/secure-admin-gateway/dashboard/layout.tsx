@@ -1,24 +1,8 @@
 import { getAdminSession } from '@/lib/auth/admin-session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { LogOut, FileText, Users, DollarSign, BarChart3, Shield } from 'lucide-react'
-
-async function AdminLogoutButton() {
-  return (
-    <form action="/api/admin-auth/logout" method="POST">
-      <Button
-        type="submit"
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
-      >
-        <LogOut className="mr-2 h-4 w-4" />
-        Logout
-      </Button>
-    </form>
-  )
-}
+import { FileText, Users, DollarSign, BarChart3, Shield } from 'lucide-react'
+import { AdminLogoutButton } from '@/components/admin-logout-button'
 
 export default async function AdminDashboardLayout({
   children,
