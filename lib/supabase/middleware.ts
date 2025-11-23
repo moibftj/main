@@ -80,6 +80,35 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
       }
 
+      // Super admin route protection
+      const superAdminRoutes = [
+        `/${adminPortalRoute}/dashboard/users`,
+        `/${adminPortalRoute}/dashboard/analytics`,
+        `/${adminPortalRoute}/dashboard/commissions`,
+        `/${adminPortalRoute}/dashboard/all-letters`,
+        `/${adminPortalRoute}/dashboard/letters`,
+        `/${adminPortalRoute}/dashboard`,
+      ]
+
+      // Check if this is a super admin only route
+      const isSuperAdminRoute = superAdminRoutes.some(route => pathname.startsWith(route))
+
+      if (isSuperAdminRoute) {
+        // Verify super admin status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, is_super_user')
+          .eq('id', adminSession.userId)
+          .single()
+
+        if (!profile || profile.role !== 'admin' || !profile.is_super_user) {
+          // Redirect regular admins to Review Center
+          const url = request.nextUrl.clone()
+          url.pathname = `/${adminPortalRoute}/review`
+          return NextResponse.redirect(url)
+        }
+      }
+
       return supabaseResponse
     }
 

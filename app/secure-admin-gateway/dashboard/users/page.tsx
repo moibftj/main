@@ -1,14 +1,22 @@
-import { getUser } from '@/lib/auth/get-user'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { DashboardLayout } from '@/components/dashboard-layout'
 import { format } from 'date-fns'
+import { isAdminAuthenticated, isSuperAdmin } from '@/lib/auth/admin-session'
+import { UserManagementActions } from '@/components/admin/user-management-actions'
+import { Badge } from '@/components/ui/badge'
+import { Shield } from 'lucide-react'
 
 export default async function UsersPage() {
-  const { profile } = await getUser()
-  
-  if (profile.role !== 'admin') {
-    redirect('/dashboard')
+  // Verify admin authentication
+  const authenticated = await isAdminAuthenticated()
+  if (!authenticated) {
+    redirect('/secure-admin-gateway/login')
+  }
+
+  // Check if super admin (only super admins can access user management)
+  const superAdmin = await isSuperAdmin()
+  if (!superAdmin) {
+    redirect('/secure-admin-gateway/dashboard')
   }
 
   const supabase = await createClient()
@@ -29,8 +37,9 @@ export default async function UsersPage() {
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <h1 className="text-3xl font-bold text-slate-900 mb-6">User Management</h1>
+      <p className="text-slate-600 mb-8">Manage user roles and permissions</p>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -63,7 +72,13 @@ export default async function UsersPage() {
                 Role
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Super Admin
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Joined
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
@@ -81,14 +96,28 @@ export default async function UsersPage() {
                     {user.role}
                   </span>
                 </td>
+                <td className="px-6 py-4">
+                  {user.role === 'admin' && user.is_super_user && (
+                    <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-orange-600">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Super Admin
+                    </Badge>
+                  )}
+                  {user.role === 'admin' && !user.is_super_user && (
+                    <span className="text-xs text-slate-400">Regular</span>
+                  )}
+                </td>
                 <td className="px-6 py-4 text-sm text-slate-500">
                   {format(new Date(user.created_at), 'MMM d, yyyy')}
+                </td>
+                <td className="px-6 py-4">
+                  <UserManagementActions user={user} isSuperAdmin={superAdmin} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }

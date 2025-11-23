@@ -1,7 +1,7 @@
-import { getAdminSession } from '@/lib/auth/admin-session'
+import { getAdminSession, isSuperAdmin } from '@/lib/auth/admin-session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, Users, DollarSign, BarChart3, Shield } from 'lucide-react'
+import { FileText, Users, DollarSign, BarChart3, Shield, Gavel } from 'lucide-react'
 import { AdminLogoutButton } from '@/components/admin-logout-button'
 
 export default async function AdminDashboardLayout({
@@ -15,38 +15,65 @@ export default async function AdminDashboardLayout({
     redirect('/secure-admin-gateway/login')
   }
 
-  const navigation = [
+  const superAdmin = await isSuperAdmin()
+
+  // Regular admins only see Review Center
+  const regularAdminNav = [
+    {
+      name: 'Review Center',
+      href: '/secure-admin-gateway/review',
+      icon: Gavel,
+      superAdminOnly: false
+    }
+  ]
+
+  // Super admins see everything
+  const superAdminNav = [
     {
       name: 'Dashboard',
       href: '/secure-admin-gateway/dashboard',
-      icon: BarChart3
+      icon: BarChart3,
+      superAdminOnly: true
+    },
+    {
+      name: 'Review Center',
+      href: '/secure-admin-gateway/review',
+      icon: Gavel,
+      superAdminOnly: false
     },
     {
       name: 'Review Queue',
       href: '/secure-admin-gateway/dashboard/letters',
-      icon: FileText
+      icon: FileText,
+      superAdminOnly: true
     },
     {
       name: 'All Letters',
       href: '/secure-admin-gateway/dashboard/all-letters',
-      icon: FileText
+      icon: FileText,
+      superAdminOnly: true
     },
     {
       name: 'Users',
       href: '/secure-admin-gateway/dashboard/users',
-      icon: Users
+      icon: Users,
+      superAdminOnly: true
     },
     {
       name: 'Commissions',
       href: '/secure-admin-gateway/dashboard/commissions',
-      icon: DollarSign
+      icon: DollarSign,
+      superAdminOnly: true
     },
     {
       name: 'Analytics',
       href: '/secure-admin-gateway/dashboard/analytics',
-      icon: BarChart3
+      icon: BarChart3,
+      superAdminOnly: true
     }
   ]
+
+  const navigation = superAdmin ? superAdminNav : regularAdminNav
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -72,6 +99,17 @@ export default async function AdminDashboardLayout({
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-slate-300">{session.email}</span>
             </div>
+            {superAdmin && (
+              <div className="flex items-center gap-1 mt-1">
+                <Shield className="h-3 w-3 text-amber-500" />
+                <span className="text-xs text-amber-500 font-semibold">Super Admin</span>
+              </div>
+            )}
+            {!superAdmin && (
+              <div className="mt-1">
+                <span className="text-xs text-slate-500">Reviewer</span>
+              </div>
+            )}
             <p className="text-xs text-slate-500 mt-1">
               Session expires in {Math.round((1800000 - (Date.now() - session.lastActivity)) / 60000)} min
             </p>
