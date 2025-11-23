@@ -64,6 +64,32 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname
 
+    // Admin Portal Protection (BEFORE regular auth checks)
+    const adminPortalRoute = process.env.ADMIN_PORTAL_ROUTE || 'secure-admin-gateway'
+    if (pathname.startsWith(`/${adminPortalRoute}`)) {
+      // Allow login page
+      if (pathname === `/${adminPortalRoute}/login`) {
+        return supabaseResponse
+      }
+
+      // Verify admin session for all other admin portal routes
+      const adminSession = verifyAdminSessionFromRequest(request)
+      if (!adminSession) {
+        const url = request.nextUrl.clone()
+        url.pathname = `/${adminPortalRoute}/login`
+        return NextResponse.redirect(url)
+      }
+
+      return supabaseResponse
+    }
+
+    // Block access to old admin routes completely
+    if (pathname.startsWith('/dashboard/admin')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
     // Public routes
     if (pathname === '/' || pathname.startsWith('/auth')) {
       return supabaseResponse
@@ -81,17 +107,6 @@ export async function updateSession(request: NextRequest) {
       if (userRole === 'employee' && (pathname.startsWith('/dashboard/letters') || pathname.startsWith('/dashboard/subscription'))) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard/commissions'
-        return NextResponse.redirect(url)
-      }
-
-      // Restrict admin-only routes
-      if (pathname.startsWith('/dashboard/admin') && userRole !== 'admin') {
-        const redirects: Record<string, string> = {
-          'subscriber': '/dashboard/letters',
-          'employee': '/dashboard/commissions'
-        }
-        const url = request.nextUrl.clone()
-        url.pathname = redirects[userRole] || '/dashboard'
         return NextResponse.redirect(url)
       }
 
