@@ -41,6 +41,7 @@ import {
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import Link from 'next/link'
+import PricingSection from '@/components/ui/pricing-section'
 
 const LETTER_TYPES = [
   { value: 'demand_letter', label: 'Demand Letter', price: 299 },
@@ -372,54 +373,7 @@ export default function HomePage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-cyan-50 to-teal-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16 scroll-reveal">
-              <h2 className="text-4xl font-bold mb-4 text-gradient-animated">
-                Simple, Transparent Pricing
-              </h2>
-              <p className="text-xl text-gray-600 animate-fade-in stagger-2">
-                Choose the plan that fits your legal needs
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {SUBSCRIPTION_PLANS.map((plan, index) => (
-                <Card
-                  key={plan.planType}
-                  className={`glass-card transition-all duration-300 ${
-                    plan.popular ? 'laser-border-blue-enhanced' : 'laser-border-blue'
-                  } animate-slide-up`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {plan.popular && (
-                    <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold text-center py-2 rounded-t-lg">
-                      MOST POPULAR
-                    </div>
-                  )}
-                  <CardHeader className="text-center relative z-10">
-                    <CardTitle className="text-gray-900 text-2xl shiny-text">
-                      {plan.name}
-                    </CardTitle>
-                    <CardDescription className="text-4xl font-bold text-blue-600 glow-text">
-                      ${plan.price}
-                    </CardDescription>
-                    <p className="text-gray-600 text-sm">
-                      {plan.letters === 1 ? 'One-time payment' : `${plan.letters} letters`}
-                    </p>
-                  </CardHeader>
-                  <CardContent className="text-center relative z-10">
-                    <Link href="/auth/signup">
-                      <Button className="w-full btn-netlify text-white py-3 text-lg transition-all duration-300">
-                        Get Started
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+        <PricingSection />
 
         {/* Features Section */}
         <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
