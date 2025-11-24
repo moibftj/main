@@ -64,11 +64,10 @@ type Profile = {
   email: string
 }
 
-export default function NewLandingPage() {
+export default function HomePage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
