@@ -2,6 +2,8 @@
 
 ## 🏗️ System Architecture Overview
 
+**Key Feature**: All subscriber-generated letters go through a **mandatory admin review process** in a dedicated admin area before being finalized.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         User Access Layer                        │
@@ -13,6 +15,7 @@
 │   Dashboard     │      Dashboard       │      Dashboard       │
 │ /dashboard/     │ /dashboard/          │ /dashboard/          │
 │ letters         │ commissions          │ admin/letters        │
+│                 │                      │ (Review Area)        │
 └─────────────────┴──────────────────────┴──────────────────────┘
 ```
 
