@@ -16,6 +16,7 @@ export interface Profile {
   email: string
   full_name: string | null
   role: UserRole
+  is_super_user: boolean
   phone: string | null
   company_name: string | null
   avatar_url: string | null
@@ -86,4 +87,44 @@ export interface Commission {
   created_at: string
   updated_at: string
   paid_at: string | null
+}
+
+export interface LetterAuditTrail {
+  id: string
+  letter_id: string
+  performed_by: string
+  action: string
+  old_status: string | null
+  new_status: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface SecurityAuditLog {
+  id: string
+  user_id: string | null
+  action: string
+  details: Record<string, any> | null
+  ip_address: string | null
+  user_agent: string | null
+  created_at: string
+}
+
+export interface SecurityConfig {
+  id: string
+  key: string
+  value: string | null
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CouponUsage {
+  id: string
+  coupon_id: string
+  user_id: string
+  subscription_id: string
+  discount_amount: number
+  created_at: string
 }

@@ -21,6 +21,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Prevent self-modification
+    if (userId === adminSession?.userId) {
+      return NextResponse.json(
+        { error: "Cannot modify your own super admin status" },
+        { status: 403 }
+      );
+    }
+
+    // If revoking super admin status, check if this is the last one
+    if (!isSuperUser) {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_super_user', true);
+
+      if ((count || 0) <= 1) {
+        return NextResponse.json(
+          { error: "Cannot revoke super admin status from the last super admin. Promote another admin first." },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update super user status
     const { error: updateError } = await supabase
       .from('profiles')

@@ -80,17 +80,17 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
       }
 
-      // Super admin route protection
+      // Super admin route protection - specific routes that require super admin privileges
       const superAdminRoutes = [
         `/${adminPortalRoute}/dashboard/users`,
         `/${adminPortalRoute}/dashboard/analytics`,
         `/${adminPortalRoute}/dashboard/commissions`,
         `/${adminPortalRoute}/dashboard/all-letters`,
-        `/${adminPortalRoute}/dashboard/letters`,
-        `/${adminPortalRoute}/dashboard`,
       ]
 
-      // Check if this is a super admin only route
+      // Allow dashboard root and letters routes for all admins
+      // Main dashboard (/, /dashboard) and /dashboard/letters are accessible to all admins
+      const isAdminRoute = pathname.startsWith(`/${adminPortalRoute}/dashboard`)
       const isSuperAdminRoute = superAdminRoutes.some(route => pathname.startsWith(route))
 
       if (isSuperAdminRoute) {

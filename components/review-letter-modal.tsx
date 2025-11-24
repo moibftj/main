@@ -6,12 +6,15 @@ import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
+import { RichTextEditor } from './ui/rich-text-editor'
 import type { Letter } from '@/lib/database.types'
 import { Wand2, Loader2 } from 'lucide-react'
 
 export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { full_name: string; email: string } } }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [finalContent, setFinalContent] = useState(letter.ai_draft_content || '')
+  const [finalContent, setFinalContent] = useState(
+    letter.ai_draft_content ? `<p>${letter.ai_draft_content.replace(/\n/g, '</p><p>')}</p>` : ''
+  )
   const [reviewNotes, setReviewNotes] = useState('')
   const [rejectionReason, setRejectionReason] = useState('')
   const [action, setAction] = useState<'approve' | 'reject' | null>(null)
@@ -20,6 +23,13 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
   const [aiInstruction, setAiInstruction] = useState('')
   const [showAiInput, setShowAiInput] = useState(false)
   const router = useRouter()
+
+  // Helper function to convert HTML to plain text for API
+  const htmlToPlainText = (html: string): string => {
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    return tempDiv.textContent || tempDiv.innerText || ''
+  }
 
   const handleOpen = async () => {
     setIsOpen(true)
@@ -49,7 +59,7 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: finalContent,
+          content: htmlToPlainText(finalContent),
           instruction: aiInstruction
         })
       })
@@ -60,7 +70,9 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
       }
 
       const { improvedContent } = await response.json()
-      setFinalContent(improvedContent)
+      // Convert plain text to HTML for rich text editor
+      const htmlContent = `<p>${improvedContent.replace(/\n/g, '</p><p>')}</p>`
+      setFinalContent(htmlContent)
       setAiInstruction('')
       setShowAiInput(false)
     } catch (error: any) {
@@ -74,7 +86,7 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
   const handleSubmit = async () => {
     if (!action) return
     
-    if (action === 'approve' && !finalContent.trim()) {
+    if (action === 'approve' && !htmlToPlainText(finalContent).trim()) {
       alert('Final content is required for approval')
       return
     }
@@ -91,7 +103,7 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
         : `/api/letters/${letter.id}/reject`
       
       const body = action === 'approve'
-        ? { finalContent, reviewNotes }
+        ? { finalContent: htmlToPlainText(finalContent), reviewNotes }
         : { rejectionReason, reviewNotes }
 
       const response = await fetch(endpoint, {
@@ -216,13 +228,12 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
               </div>
             )}
 
-            <Textarea
-              id="content"
-              value={finalContent}
-              onChange={(e) => setFinalContent(e.target.value)}
-              className="min-h-[400px] font-mono text-sm"
+            <RichTextEditor
+              content={finalContent}
+              onChange={setFinalContent}
               placeholder="Edit the letter content before approval..."
-              disabled={aiImproving}
+              editable={!aiImproving}
+              className="min-h-[400px]"
             />
           </div>
 
