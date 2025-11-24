@@ -568,9 +568,9 @@ body {
   justify-content: center;
   width: 100%;
   max-width: 320px;
-  border-radius: 24px;
+  border-radius: 16px;
   line-height: 1.6;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.3s ease;
   cursor: pointer;
   background: transparent;
   border: none;
@@ -582,110 +582,101 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 24px;
-  padding: 36px;
-  border-radius: 22px;
+  gap: 16px;
+  padding: 28px;
+  border-radius: 14px;
   color: #ffffff;
   overflow: hidden;
-  background: #0a3cff;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
   width: 100%;
+  position: relative;
 }
 
 .letter-card .content::before {
   position: absolute;
   content: "";
-  top: -4%;
-  left: 50%;
-  width: 90%;
-  height: 90%;
-  transform: translate(-50%);
-  background: #ced8ff;
-  z-index: -1;
-  transform-origin: bottom;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
   border-radius: inherit;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.letter-card .content::after {
-  position: absolute;
-  content: "";
-  top: -8%;
-  left: 50%;
-  width: 80%;
-  height: 80%;
-  transform: translate(-50%);
-  background: #e7ecff;
-  z-index: -2;
-  transform-origin: bottom;
-  border-radius: inherit;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.letter-card svg {
-  width: 48px;
-  height: 48px;
-  z-index: 1;
-}
-
-.letter-card .para {
-  z-index: 1;
-  opacity: 1;
-  font-size: 18px;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
-  font-weight: 500;
-  margin: 0;
-}
-
-.letter-card .description {
-  z-index: 1;
-  opacity: 0.9;
-  font-size: 14px;
-  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
-  margin: 0;
-}
-
-.letter-card:hover {
-  transform: translate(0px, -16px);
 }
 
 .letter-card:hover .content::before {
-  rotate: -8deg;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  transform: translateX(100%);
 }
 
-.letter-card:hover .content::after {
-  rotate: 8deg;
-  top: 0;
-  width: 100%;
-  height: 100%;
+.letter-card svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.9;
+  transition: all 0.3s ease;
 }
 
-/* Custom colors for different letter types */
+.letter-card .para {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+.letter-card .description {
+  font-size: 13px;
+  opacity: 0.8;
+  margin: 0;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+}
+
+.letter-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.letter-card:hover svg {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.letter-card:hover .para {
+  opacity: 1;
+}
+
+.letter-card:hover .description {
+  opacity: 0.9;
+}
+
+/* Custom colors for different letter types - Professional & Classy */
 .letter-card.demand .content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
 }
 
 .letter-card.cease .content {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
 }
 
 .letter-card.contract .content {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
 }
 
 .letter-card.eviction .content {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: linear-gradient(135deg, #2c7a7b 0%, #285e61 100%);
 }
 
 .letter-card.employment .content {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
 }
 
 .letter-card.consumer .content {
-  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+  background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%);
 }
 
 /* Professional Landing Page Enhancements */
