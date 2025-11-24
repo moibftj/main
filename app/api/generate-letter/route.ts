@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
+import { openai } from "@ai-sdk/openai"
+import { generateText } from "ai"
 
 export const runtime = "nodejs"
 
@@ -82,43 +84,19 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 5. Call OpenAI API directly (Node runtime) for a first draft
+      // 5. Generate letter using AI SDK with OpenAI
       const prompt = buildPrompt(letterType, intakeData)
 
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: [
-            {
-              role: "system",
-              content: "You are a professional legal attorney drafting formal legal letters. Always produce professional, legally sound content with proper formatting."
-            },
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2048,
-        })
+      const { text: generatedContent } = await generateText({
+        model: openai("gpt-4-turbo"),
+        system: "You are a professional legal attorney drafting formal legal letters. Always produce professional, legally sound content with proper formatting.",
+        prompt,
+        temperature: 0.7,
+        maxTokens: 2048,
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("[GenerateLetter] OpenAI API error:", response.status, errorText)
-        throw new Error(`OpenAI API returned ${response.status}`)
-      }
-
-      const aiResult = await response.json()
-      const generatedContent = aiResult.choices?.[0]?.message?.content || ""
-
       if (!generatedContent) {
-        console.error("[GenerateLetter] OpenAI returned empty content", aiResult)
+        console.error("[GenerateLetter] AI returned empty content")
         throw new Error("AI returned empty content")
       }
 
