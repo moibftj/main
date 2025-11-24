@@ -16,7 +16,7 @@ export default async function HomePage({
   const configError = params?.error === 'config'
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden pro-landing">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute left-1/4 top-0 h-96 w-96 animate-pulse rounded-full bg-primary/20 blur-3xl" style={{ animationDuration: '8s' }} />
@@ -26,7 +26,7 @@ export default async function HomePage({
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background/90" />
 
       {/* Navigation */}
-      <nav className="relative border-b bg-white/60 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="relative border-b border-slate-200/60 bg-white/80 backdrop-blur-xl sticky top-0 z-50 pro-nav shadow-sm shadow-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2 group">
@@ -86,7 +86,7 @@ export default async function HomePage({
       )}
 
       {/* Hero Section */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10 pro-hero">
         <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 to-purple-500/10 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm mb-8 animate-fade-in">
             <Sparkles className="w-4 h-4" />
@@ -122,7 +122,7 @@ export default async function HomePage({
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mt-24">
+        <div className="grid md:grid-cols-3 gap-8 mt-24 pro-features">
           <FeatureCard
             icon={<Zap className="w-6 h-6" />}
             title="Lightning Fast"
@@ -144,7 +144,7 @@ export default async function HomePage({
         </div>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 mb-20">
+        <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 mb-20">
           {[
             { number: "10,000+", label: "Letters Generated" },
             { number: "98%", label: "Client Satisfaction" },
@@ -161,7 +161,7 @@ export default async function HomePage({
         </div>
 
         {/* Enhanced Pricing Section */}
-        <div id="pricing" className="mt-24">
+        <div id="pricing" className="mt-24 pro-pricing">
           <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h2>
@@ -199,7 +199,7 @@ export default async function HomePage({
         </div>
 
         {/* Testimonials */}
-        <div className="mt-24 text-center">
+        <div className="mt-24 text-center pro-testimonials">
           <h2 className="text-3xl font-bold mb-12 bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
             Trusted by Professionals
           </h2>
@@ -227,7 +227,7 @@ export default async function HomePage({
       </div>
 
       {/* Footer */}
-      <footer className="relative border-t bg-white/60 backdrop-blur-xl mt-24">
+      <footer className="relative border-t border-slate-200/60 bg-white/80 backdrop-blur-xl mt-24 pro-footer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center text-slate-600">
             <p>&copy; 2024 Talk-To-My-Lawyer. All rights reserved.</p>
