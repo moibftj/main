@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { SubscriptionModal } from "@/components/subscription-modal"
+import { GenerateButton } from "@/components/generate-button"
 import { createClient } from "@/lib/supabase/client"
 
 const LETTER_TYPES = [
@@ -263,10 +264,14 @@ export default function NewLetterPage() {
 
             {error && <div className="mt-4 p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
-            <div className="mt-6 flex gap-4">
-              <Button type="submit" disabled={loading || isChecking} className="flex-1">
-                {loading ? "Generating..." : hasSubscription ? "Generate Attorney Draft" : "Subscribe to Generate"}
-              </Button>
+            <div className="mt-6 flex items-center justify-center gap-6">
+              <GenerateButton
+                type="submit"
+                loading={loading}
+                disabled={loading || isChecking}
+                hasSubscription={hasSubscription}
+                className="flex-1"
+              />
               <Button type="button" variant="outline" onClick={() => router.push("/dashboard/letters")}>
                 Cancel
               </Button>

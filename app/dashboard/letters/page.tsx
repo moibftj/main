@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { DashboardLayout } from '@/components/dashboard-layout'
+import { GenerateButton } from '@/components/generate-button'
 import { format } from 'date-fns'
 
 export default async function MyLettersPage() {
@@ -118,12 +119,7 @@ export default async function MyLettersPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-slate-900">My Letters</h1>
         <Link href="/dashboard/letters/new">
-          <Button className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Letter
-          </Button>
+          <GenerateButton hasSubscription={true} />
         </Link>
       </div>
 
@@ -145,7 +141,7 @@ export default async function MyLettersPage() {
             {profile.role === 'subscriber' ? 'Create a letter and submit it for review. Once approved, it will appear here.' : 'You have no letters to display.'}
           </p>
           <Link href="/dashboard/letters/new">
-            <Button>{profile.role === 'subscriber' ? 'Create Your First Letter' : 'Create Letter'}</Button>
+            <GenerateButton hasSubscription={true} />
           </Link>
         </div>
       )}
