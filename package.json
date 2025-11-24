@@ -65,10 +65,13 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@modelcontextprotocol/server-filesystem": "^2025.8.21",
+    "@mzxrai/mcp-webresearch": "^0.1.7",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "mcp-server-code-runner": "^0.1.8",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",

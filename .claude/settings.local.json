@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(export VERCEL_TOKEN=\"Si1Vxw3yc9dhVAIT0mglrFj5\")",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(npm run dev)",
+      "Bash(npm install:*)",
+      "WebSearch",
+      "Bash(npm search:*)",
+      "Bash(cat:*)",
+      "Bash(npx @modelcontextprotocol/server-filesystem@latest:*)"
     ],
     "deny": [],
     "ask": []

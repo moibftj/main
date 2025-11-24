@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "letterType and intakeData are required" }, { status: 400 })
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      console.error("[GenerateLetter] Missing GEMINI_API_KEY")
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("[GenerateLetter] Missing OPENAI_API_KEY")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
 
@@ -82,40 +82,43 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 5. Call Google Gemini API directly (Node runtime) for a first draft
+      // 5. Call OpenAI API directly (Node runtime) for a first draft
       const prompt = buildPrompt(letterType, intakeData)
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          }
+          model: "gpt-4",
+          messages: [
+            {
+              role: "system",
+              content: "You are a professional legal attorney drafting formal legal letters. Always produce professional, legally sound content with proper formatting."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
         })
       })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("[GenerateLetter] Gemini API error:", response.status, errorText)
-        throw new Error(`Gemini API returned ${response.status}`)
+        console.error("[GenerateLetter] OpenAI API error:", response.status, errorText)
+        throw new Error(`OpenAI API returned ${response.status}`)
       }
 
       const aiResult = await response.json()
-      const generatedContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || ""
+      const generatedContent = aiResult.choices?.[0]?.message?.content || ""
 
       if (!generatedContent) {
-        console.error("[GenerateLetter] Gemini returned empty content", aiResult)
+        console.error("[GenerateLetter] OpenAI returned empty content", aiResult)
         throw new Error("AI returned empty content")
       }
 
@@ -213,8 +216,8 @@ function buildPrompt(letterType: string, intakeData: Record<string, unknown>) {
   const amountField = intakeData["amountDemanded"] ? `Amount: $${intakeData["amountDemanded"]}` : ""
 
   return [
-    `You are a professional legal attorney drafting a formal ${letterType} letter.`,
-    "Write a professional, legally sound letter (300-500 words) with proper date/addresses, facts, clear demand, deadline, and professional tone.",
+    `Draft a professional ${letterType} letter with the following details:`,
+    "",
     fields("senderName"),
     fields("senderAddress"),
     fields("recipientName"),
@@ -222,7 +225,16 @@ function buildPrompt(letterType: string, intakeData: Record<string, unknown>) {
     fields("issueDescription"),
     fields("desiredOutcome"),
     amountField,
-    "Return only the letter content, no additional commentary.",
+    "",
+    "Requirements:",
+    "- Write a professional, legally sound letter (300-500 words)",
+    "- Include proper date and addresses",
+    "- Present facts clearly",
+    "- State clear demands with deadlines",
+    "- Maintain professional legal tone throughout",
+    "- Format as a complete letter with proper structure",
+    "",
+    "Return only the letter content, no additional commentary or explanations."
   ]
     .filter(Boolean)
     .join("\n")

@@ -1,13 +1,13 @@
 # Talk-To-My-Lawyer - Legal Letter Generation Platform
 
-A production-ready SaaS platform for generating legal letters with AI assistance and attorney review. Built with Next.js 16, Supabase, and Google Gemini AI.
+A production-ready SaaS platform for generating legal letters with AI assistance and attorney review. Built with Next.js 16, Supabase, and OpenAI GPT-4.
 
 ## 🏗️ Architecture
 
 ### Tech Stack
 - **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL), Next.js API Routes
-- **AI**: Google Gemini 2.5 Flash for letter generation and improvement
+- **AI**: OpenAI GPT-4 for letter generation and improvement
 - **Authentication**: Supabase Auth with role-based access control
 - **Database**: PostgreSQL with comprehensive RLS policies
 - **Deployment**: Vercel-ready with CI/CD support
@@ -22,7 +22,7 @@ A production-ready SaaS platform for generating legal letters with AI assistance
 ### Prerequisites
 - Node.js 18+
 - Supabase account and project
-- Google Gemini API key
+- OpenAI API key
 
 ### Installation
 
@@ -77,7 +77,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # AI Configuration
-GEMINI_API_KEY=your-gemini-api-key
+OPENAI_API_KEY=your-openai-api-key
 
 # Security
 CRON_SECRET=your-cron-secret-key
@@ -106,7 +106,7 @@ CRON_SECRET=your-cron-secret-key
 
 ### Admin Journey
 1. **Letter Review**: Review and approve/reject subscriber letters
-2. **AI Improvement**: Use Gemini AI to enhance letter quality
+2. **AI Improvement**: Use OpenAI GPT-4 to enhance letter quality
 3. **User Management**: Manage subscribers, employees, and roles
 4. **Commission Management**: Track and process employee commissions
 5. **Analytics**: Monitor platform usage and revenue
@@ -123,7 +123,7 @@ CRON_SECRET=your-cron-secret-key
 ## 📊 Key Features
 
 ### Core Functionality
-- ✅ AI-powered letter generation (Gemini 2.5 Flash)
+- ✅ AI-powered letter generation (OpenAI GPT-4)
 - ✅ Professional attorney review and AI improvement
 - ✅ PDF generation and email delivery
 - ✅ Complete audit trail and logging
