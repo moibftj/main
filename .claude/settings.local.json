@@ -11,7 +11,8 @@
       "WebSearch",
       "Bash(npm search:*)",
       "Bash(cat:*)",
-      "Bash(npx @modelcontextprotocol/server-filesystem@latest:*)"
+      "Bash(npx @modelcontextprotocol/server-filesystem@latest:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
