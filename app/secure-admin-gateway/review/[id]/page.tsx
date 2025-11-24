@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { isAdminAuthenticated } from '@/lib/auth/admin-session'
+import { getAdminSession, isAdminAuthenticated } from '@/lib/auth/admin-session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,11 @@ export default async function ReviewLetterDetailPage({ params }: { params: Promi
   // Verify admin authentication
   const authenticated = await isAdminAuthenticated()
   if (!authenticated) {
+    redirect('/secure-admin-gateway/login')
+  }
+
+  const adminSession = await getAdminSession()
+  if (!adminSession?.userId) {
     redirect('/secure-admin-gateway/login')
   }
 
@@ -30,6 +35,10 @@ export default async function ReviewLetterDetailPage({ params }: { params: Promi
         email,
         phone,
         company_name
+      ),
+      reviewer:profiles!letters_reviewed_by_fkey (
+        full_name,
+        email
       )
     `)
     .eq('id', id)
@@ -95,7 +104,7 @@ export default async function ReviewLetterDetailPage({ params }: { params: Promi
         </div>
 
         {/* Review Actions */}
-        <ReviewLetterModal letter={letter} />
+        <ReviewLetterModal letter={letter} currentAdminId={adminSession.userId} />
       </div>
 
       {/* Subscriber Information */}

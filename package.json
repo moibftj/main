@@ -73,14 +73,17 @@
   "devDependencies": {
     "@modelcontextprotocol/server-filesystem": "^2025.8.21",
     "@mzxrai/mcp-webresearch": "^0.1.7",
+    "@next/eslint-plugin-next": "^16.0.3",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "globals": "^15.15.0",
     "mcp-server-code-runner": "^0.1.8",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.47.0"
   }
 }

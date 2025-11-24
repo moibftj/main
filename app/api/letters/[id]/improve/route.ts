@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdminAuth } from '@/lib/auth/admin-session'
+import { getAdminSession, requireAdminAuth } from '@/lib/auth/admin-session'
 import { openai } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 
@@ -15,6 +15,46 @@ export async function POST(
 
     const { id } = await params
     const supabase = await createClient()
+    const adminSession = await getAdminSession()
+
+    if (!adminSession?.userId) {
+      return NextResponse.json({ error: 'Admin session missing' }, { status: 401 })
+    }
+
+    const { data: letter } = await supabase
+      .from('letters')
+      .select('status, reviewed_by')
+      .eq('id', id)
+      .single()
+
+    if (!letter) {
+      return NextResponse.json({ error: 'Letter not found' }, { status: 404 })
+    }
+
+    if (letter.reviewed_by && letter.reviewed_by !== adminSession?.userId) {
+      return NextResponse.json(
+        { error: 'This letter is assigned to another admin and cannot be edited by you.' },
+        { status: 409 }
+      )
+    }
+
+    if (letter.status !== 'under_review') {
+      return NextResponse.json(
+        { error: 'Letter must be under active review before AI edits can be requested.' },
+        { status: 400 }
+      )
+    }
+
+    if (!letter.reviewed_by && adminSession?.userId) {
+      const { error: reviewerUpdateError } = await supabase
+        .from('letters')
+        .update({ reviewed_by: adminSession.userId, updated_at: new Date().toISOString() })
+        .eq('id', id)
+
+      if (reviewerUpdateError) {
+        console.error('[v0] Failed to assign reviewer during improvement:', reviewerUpdateError)
+      }
+    }
 
     const body = await request.json()
     const { content, instruction } = body
@@ -45,10 +85,10 @@ export async function POST(
     }
 
     return NextResponse.json({ improvedContent }, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[v0] Letter improvement error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to improve letter content' },
+      { error: error instanceof Error ? error.message : 'Failed to improve letter content' },
       { status: 500 }
     )
   }

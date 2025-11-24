@@ -15,6 +15,10 @@ export async function POST(
     const supabase = await createClient()
     const adminSession = await getAdminSession()
 
+    if (!adminSession?.userId) {
+      return NextResponse.json({ error: 'Admin session missing' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { rejectionReason, reviewNotes } = body
 
@@ -24,9 +28,29 @@ export async function POST(
 
     const { data: letter } = await supabase
       .from('letters')
-      .select('status')
+      .select('status, reviewed_by')
       .eq('id', id)
       .single()
+
+    if (!letter) {
+      return NextResponse.json({ error: 'Letter not found' }, { status: 404 })
+    }
+
+    if (letter.reviewed_by && letter.reviewed_by !== adminSession?.userId) {
+      return NextResponse.json(
+        { error: 'This letter is assigned to another admin and cannot be rejected by you.' },
+        { status: 409 }
+      )
+    }
+
+    if (letter.status !== 'under_review') {
+      return NextResponse.json(
+        { error: 'Letter must be under review before it can be rejected.' },
+        { status: 400 }
+      )
+    }
+
+    const reviewerId = letter.reviewed_by || adminSession?.userId
 
     const { error: updateError } = await supabase
       .from('letters')
@@ -34,7 +58,7 @@ export async function POST(
         status: 'rejected',
         rejection_reason: rejectionReason,
         review_notes: reviewNotes,
-        reviewed_by: adminSession?.userId,
+        reviewed_by: reviewerId,
         reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })

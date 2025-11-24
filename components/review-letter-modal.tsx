@@ -10,7 +10,13 @@ import { RichTextEditor } from './ui/rich-text-editor'
 import type { Letter } from '@/lib/database.types'
 import { Wand2, Loader2 } from 'lucide-react'
 
-export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { full_name: string; email: string } } }) {
+export function ReviewLetterModal({
+  letter,
+  currentAdminId
+}: {
+  letter: Letter & { profiles?: { full_name: string; email: string }; reviewer?: { full_name: string; email: string } | null }
+  currentAdminId: string
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const [finalContent, setFinalContent] = useState(
     letter.ai_draft_content ? `<p>${letter.ai_draft_content.replace(/\n/g, '</p><p>')}</p>` : ''
@@ -22,7 +28,9 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
   const [aiImproving, setAiImproving] = useState(false)
   const [aiInstruction, setAiInstruction] = useState('')
   const [showAiInput, setShowAiInput] = useState(false)
+  const [claiming, setClaiming] = useState(false)
   const router = useRouter()
+  const assignedToAnotherAdmin = Boolean(letter.reviewed_by && letter.reviewed_by !== currentAdminId)
 
   // Helper function to convert HTML to plain text for API
   const htmlToPlainText = (html: string): string => {
@@ -31,19 +39,34 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
     return tempDiv.textContent || tempDiv.innerText || ''
   }
 
+  const getErrorMessage = (error: unknown, fallback: string) => (
+    error instanceof Error ? error.message : fallback
+  )
+
   const handleOpen = async () => {
-    setIsOpen(true)
-    
-    // Transition letter to under_review status
-    if (letter.status === 'pending_review') {
-      try {
-        await fetch(`/api/letters/${letter.id}/start-review`, {
-          method: 'POST'
-        })
-        router.refresh()
-      } catch (error) {
-        console.error('[v0] Failed to start review:', error)
+    if (assignedToAnotherAdmin) {
+      alert('This letter is already assigned to another admin for review.')
+      return
+    }
+
+    setClaiming(true)
+    try {
+      const response = await fetch(`/api/letters/${letter.id}/start-review`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Unable to start review. This letter may be locked by another admin.')
       }
+
+      router.refresh()
+      setIsOpen(true)
+    } catch (error: unknown) {
+      console.error('[v0] Failed to start review:', error)
+      alert(getErrorMessage(error, 'Failed to start review. Please try again.'))
+    } finally {
+      setClaiming(false)
     }
   }
 
@@ -75,9 +98,9 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
       setFinalContent(htmlContent)
       setAiInstruction('')
       setShowAiInput(false)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[v0] AI improvement error:', error)
-      alert(error.message || 'Failed to improve content with AI')
+      alert(getErrorMessage(error, 'Failed to improve content with AI'))
     } finally {
       setAiImproving(false)
     }
@@ -119,9 +142,9 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
 
       setIsOpen(false)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[v0] Review error:', error)
-      alert(error.message || 'Failed to update letter status')
+      alert(getErrorMessage(error, 'Failed to update letter status'))
     } finally {
       setLoading(false)
     }
@@ -129,8 +152,10 @@ export function ReviewLetterModal({ letter }: { letter: Letter & { profiles?: { 
 
   if (!isOpen) {
     return (
-      <Button onClick={handleOpen}>
-        Review Letter
+      <Button onClick={handleOpen} disabled={claiming || assignedToAnotherAdmin}>
+        {assignedToAnotherAdmin
+          ? 'Assigned to another admin'
+          : (claiming ? 'Opening...' : 'Review Letter')}
       </Button>
     )
   }

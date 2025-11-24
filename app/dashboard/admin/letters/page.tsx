@@ -21,6 +21,10 @@ export default async function AdminLettersPage() {
       profiles!letters_user_id_fkey (
         full_name,
         email
+      ),
+      reviewer:profiles!letters_reviewed_by_fkey (
+        full_name,
+        email
       )
     `)
     .in('status', ['pending_review', 'under_review'])
@@ -48,16 +52,26 @@ export default async function AdminLettersPage() {
                     <p>Submitted: {format(new Date(letter.created_at), 'MMM d, yyyy h:mm a')}</p>
                     <p className="font-medium">
                       Status: <span className={
-                        letter.status === 'under_review' 
-                          ? 'text-orange-600' 
+                        letter.status === 'under_review'
+                          ? 'text-orange-600'
                           : 'text-yellow-600'
                       }>
                         {letter.status === 'under_review' ? 'Under Review' : 'Pending Review'}
                       </span>
                     </p>
+                    <p>
+                      Assigned Reviewer:{' '}
+                      <span className="font-medium">
+                        {letter.reviewed_by
+                          ? (letter.reviewed_by === profile.id
+                            ? 'You'
+                            : letter.reviewer?.full_name || 'Another admin')
+                          : 'Unassigned'}
+                      </span>
+                    </p>
                   </div>
                 </div>
-                <ReviewLetterModal letter={letter} />
+                <ReviewLetterModal letter={letter} currentAdminId={profile.id} />
               </div>
               
               <div className="mt-4 p-4 bg-slate-50 rounded-lg">
