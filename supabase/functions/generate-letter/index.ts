@@ -1,13 +1,18 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import OpenAI from 'https://deno.land/x/openai@v4.24.0/mod.ts'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://www.talk-to-my-lawyers.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', {
+      status: 200,
+      headers: corsHeaders
+    })
   }
 
   try {
@@ -29,36 +34,27 @@ Letter Type: ${letterType || 'Professional Legal Letter'}
 
 Format the response as a complete letter ready to send.`
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: prompt || JSON.stringify(formData)
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
+    const openai = new OpenAI({
+      apiKey: openaiApiKey,
     })
 
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`OpenAI API error: ${error}`)
-    }
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-turbo-preview',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: prompt || JSON.stringify(formData)
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    })
 
-    const data = await response.json()
-    const generatedLetter = data.choices[0]?.message?.content
+    const generatedLetter = completion.choices[0]?.message?.content
 
     if (!generatedLetter) {
       throw new Error('No content generated from OpenAI')

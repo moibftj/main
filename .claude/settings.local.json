@@ -21,7 +21,8 @@
       "Bash(supabase link:*)",
       "Bash(supabase db push:*)",
       "Bash(supabase functions deploy:*)",
-      "Bash(supabase secrets list:*)"
+      "Bash(supabase secrets list:*)",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []
