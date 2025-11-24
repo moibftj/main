@@ -5,26 +5,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import {
-  User,
   Users,
   Shield,
-  PenTool,
-  Gift,
-  LogOut,
   FileText,
   Scale,
   CheckCircle,
-  Download,
-  Send,
   Home,
   AlertCircle,
   Sparkles,
@@ -33,23 +21,11 @@ import {
   Play,
   ChevronRight,
   Building,
-  Star,
   Phone,
   Mail,
   Zap,
-  Clock,
 } from 'lucide-react'
-import jsPDF from 'jspdf'
 import Link from 'next/link'
-
-const LETTER_TYPES = [
-  { value: 'demand_letter', label: 'Demand Letter', price: 299 },
-  { value: 'cease_desist', label: 'Cease & Desist', price: 299 },
-  { value: 'contract_breach', label: 'Contract Breach Notice', price: 299 },
-  { value: 'eviction_notice', label: 'Eviction Notice', price: 299 },
-  { value: 'employment_dispute', label: 'Employment Dispute', price: 299 },
-  { value: 'consumer_complaint', label: 'Consumer Complaint', price: 299 },
-]
 
 const SUBSCRIPTION_PLANS = [
   { letters: 1, price: 299, planType: 'one_time', popular: false, name: 'Single Letter' },
@@ -64,11 +40,10 @@ type Profile = {
   email: string
 }
 
-export default function NewLandingPage() {
+export default function HomePage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
@@ -119,17 +94,17 @@ export default function NewLandingPage() {
       if (profile) {
         setUser(user)
         setProfile(profile as Profile)
+        
+        // Redirect authenticated users to their appropriate dashboard
+        if (profile.role === 'subscriber') {
+          router.push('/dashboard')
+        } else if (profile.role === 'admin') {
+          router.push('/dashboard/admin')
+        } else if (profile.role === 'employee') {
+          router.push('/dashboard/commissions')
+        }
       }
     }
-  }
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-    toast.success('Logged out successfully')
-    router.push('/')
   }
 
   const scrollToSection = (sectionId: string) => {
@@ -140,6 +115,18 @@ export default function NewLandingPage() {
         block: 'start',
       })
     }
+  }
+
+  // Show loading while checking auth
+  if (user && profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {
