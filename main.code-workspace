@@ -1,10 +1,10 @@
 {
-	"folders": [
-		{
-			"path": "/workspaces/main"
-		}
-	],
-	"settings": {
-		"chatgpt.openOnStartup": false
-	}
+  "folders": [
+    {
+      "path": "/workspaces/main"
+    }
+  ],
+  "settings": {
+    "chatgpt.openOnStartup": false
+  }
 }
